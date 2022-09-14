@@ -1,5 +1,5 @@
 #include "./engine/app.h"
-#include "game.h"
+#include "snake/game.h"
 
 int main(void)
 {

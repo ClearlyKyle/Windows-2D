@@ -1,6 +1,7 @@
 #include "app.h"
 
 #include <windows.h>
+#include <windowsx.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <time.h>
@@ -9,6 +10,7 @@
 
 #include "timer.h"
 #include "bitmap.h"
+#include "input.h"
 
 typedef struct Application
 {
@@ -237,6 +239,16 @@ void App_Startup(const int width, const int height, const char *title,
         Bitmap_Draw_Pixel(799, 799, 0x0000BB, &Bitmap);
         Bitmap_Draw_Rectangle(50, 50, 100, 100, 0x00FF00, &Bitmap);
 
+        if (input_key_is_pressed(KEY_W))
+        {
+            fprintf(stdout, "W Key was PRESSED\n");
+        }
+        // if (input_key_was_down(KEY_W))
+        //{
+        //     fprintf(stdout, "W Key was RELEASED\n");
+        // }
+
+        input_update();
         Window_Blit(&Bitmap);
     }
 }
@@ -245,11 +257,99 @@ LRESULT CALLBACK win32_process_message(HWND Window, UINT Message, WPARAM WParam,
 {
     switch (Message)
     {
+    case WM_CLOSE:
     case WM_DESTROY:
-    {
         PostQuitMessage(0);
-        break;
+        return 0;
+    case WM_KEYDOWN:
+    case WM_SYSKEYDOWN:
+    case WM_KEYUP:
+    case WM_SYSKEYUP:
+    {
+        // Key pressed/released
+        const bool pressed = (Message == WM_KEYDOWN || Message == WM_SYSKEYDOWN);
+        keys       key     = (unsigned short)WParam;
+
+        // Check for extended scan code.
+        const bool is_extended = (HIWORD(LParam) & KF_EXTENDED) == KF_EXTENDED;
+
+        // Keypress only determines if _any_ alt/ctrl/shift key is pressed. Determine which one if so.
+        if (WParam == VK_MENU)
+        {
+            key = is_extended ? KEY_RALT : KEY_LALT;
+        }
+        else if (WParam == VK_SHIFT)
+        {
+            // Annoyingly, KF_EXTENDED is not set for shift keys.
+            u32 left_shift = MapVirtualKey(VK_LSHIFT, MAPVK_VK_TO_VSC);
+            u32 scancode   = ((LParam & (0xFF << 16)) >> 16);
+            key            = scancode == left_shift ? KEY_LSHIFT : KEY_RSHIFT;
+        }
+        else if (WParam == VK_CONTROL)
+        {
+            key = is_extended ? KEY_RCONTROL : KEY_LCONTROL;
+        }
+
+        // Pass to the input subsystem for processing.
+        input_process_key(key, pressed);
+
+        // Return 0 to prevent default window behaviour for some keypresses, such as alt.
+        return 0;
     }
+    case WM_MOUSEMOVE:
+    {
+        // Mouse move
+        signed int x_position = GET_X_LPARAM(LParam);
+        signed int y_position = GET_Y_LPARAM(LParam);
+
+        // Pass over to the input subsystem.
+        input_mouse_process_move(x_position, y_position);
     }
-    return DefWindowProc(Window, Message, WParam, LParam);
+    break;
+    case WM_MOUSEWHEEL:
+    {
+        signed int z_delta = GET_WHEEL_DELTA_WPARAM(WParam);
+        if (z_delta != 0)
+        {
+            // Flatten the input to an OS-independent (-1, 1)
+            z_delta = (z_delta < 0) ? -1 : 1;
+            // input_process_mouse_wheel(z_delta);
+        }
+    }
+    break;
+    case WM_LBUTTONDOWN:
+    case WM_MBUTTONDOWN:
+    case WM_RBUTTONDOWN:
+    case WM_LBUTTONUP:
+    case WM_MBUTTONUP:
+    case WM_RBUTTONUP:
+    {
+        bool    pressed      = Message == WM_LBUTTONDOWN || Message == WM_RBUTTONDOWN || Message == WM_MBUTTONDOWN;
+        buttons mouse_button = BUTTON_MAX_BUTTONS;
+        switch (Message)
+        {
+        case WM_LBUTTONDOWN:
+        case WM_LBUTTONUP:
+            mouse_button = BUTTON_LEFT;
+            break;
+        case WM_MBUTTONDOWN:
+        case WM_MBUTTONUP:
+            mouse_button = BUTTON_MIDDLE;
+            break;
+        case WM_RBUTTONDOWN:
+        case WM_RBUTTONUP:
+            mouse_button = BUTTON_RIGHT;
+            break;
+        }
+
+        // Pass over to the input subsystem.
+        if (mouse_button != BUTTON_MAX_BUTTONS)
+        {
+            intput_process_mouse(mouse_button, pressed);
+        }
+    }
+    break;
+    }
+
+    return DefWindowProcA(Window, Message, WParam, LParam);
 }

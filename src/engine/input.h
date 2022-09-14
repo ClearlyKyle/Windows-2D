@@ -9,22 +9,39 @@ typedef enum
 {
     BUTTON_LEFT,
     BUTTON_RIGHT,
+    BUTTON_MIDDLE,
     BUTTON_MAX_BUTTONS
 } buttons;
 
 typedef enum
 {
-    KEY_W,
-    KEY_A,
+    KEY_W = 87,
+    KEY_A = 65,
     KEY_S,
     KEY_D,
+
+    KEY_RSHIFT,
+    KEY_LSHIFT,
+    KEY_RALT,
+    KEY_LALT,
+    KEY_RCONTROL,
+    KEY_LCONTROL
+
 } keys;
 
 void input_process_key(keys key, bool pressed);
+void intput_process_mouse(buttons button, bool pressed);
+void input_update(void);
 
-bool input_is_key_down(const keys key);
-bool input_is_key_up(const keys key);
-bool input_was_key_down(const keys key);
-bool input_was_key_up(const keys key);
+// KEYBOARD input
+bool input_key_is_down(const keys key);
+bool input_key_is_up(const keys key);
+bool input_key_is_pressed(const keys key);
+bool input_key_was_down(const keys key);
+bool input_key_was_up(const keys key);
 
+// MOUSE input
+bool input_mouse_is_botton_down(const buttons button);
+bool input_mouse_is_botton_up(const buttons button);
+void input_mouse_process_move(signed int x, signed int y);
 #endif // __INPUT_H__
