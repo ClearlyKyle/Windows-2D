@@ -25,11 +25,12 @@ typedef struct Application
 
     bool running;
 
-    Appfunction_ptr Init;
-    Appfunction_ptr Update;
-    Appfunction_ptr OnExit;
+    Appfunction_ptr        Init;
+    Appfunction_update_ptr Update;
+    Appfunction_ptr        Render;
+    Appfunction_ptr        OnExit;
 
-    double frame_time, last_frame_time; // ms
+    bitmap Bitmap;
 } Application;
 
 // global app
@@ -40,9 +41,8 @@ static Application window_app;
 //     app.Init();
 // }
 
-static void _Update()
+static void _Update(const double elapsed_time)
 {
-    window_app.Update();
 }
 
 static void _OnExit()
@@ -157,14 +157,14 @@ typedef uint32_t u32;
 static void      Window_Clear_Screen(const unsigned int colour, bitmap *const Bitmap)
 {
     const u32 num_of_pixels = Bitmap->Width * Bitmap->Height;
-    for (u32 *pixel     = (u32 *)Bitmap->Memory,
-             *end_pixel = ((u32 *)Bitmap->Memory + num_of_pixels);
-         pixel != end_pixel;
-         pixel++)
-    {
-        *pixel = colour;
-    }
-    // memset(Bitmap->Memory, colour, num_of_pixels * 4);
+    // for (u32 *pixel     = (u32 *)Bitmap->Memory,
+    //          *end_pixel = ((u32 *)Bitmap->Memory + num_of_pixels);
+    //      pixel != end_pixel;
+    //      pixel++)
+    //{
+    //     *pixel = colour;
+    // }
+    memset(Bitmap->Memory, colour, num_of_pixels * 4);
 }
 
 static void Window_Blit(bitmap *Bitmap)
@@ -178,10 +178,26 @@ static void Window_Blit(bitmap *Bitmap)
                   DIB_RGB_COLORS, SRCCOPY);
 }
 
+void Window_Set_Title(const char *title)
+{
+    SetWindowText(window_app.hwnd, title);
+}
+
+unsigned int Window_Width(void)
+{
+    return window_app.client_width;
+}
+
+unsigned int Window_Height(void)
+{
+    return window_app.client_height;
+}
+
 void App_Startup(const int width, const int height, const char *title,
-                 Appfunction_ptr init,    // run on application startup
-                 Appfunction_ptr update,  // run on every loop
-                 Appfunction_ptr on_exit) // run on exit of application
+                 Appfunction_ptr        init,      // run on application startup
+                 Appfunction_update_ptr update,    // run on every loop
+                 Appfunction_ptr        on_render, // run on every loop
+                 Appfunction_ptr        on_exit)          // run on exit of application
 {
     srand((unsigned int)time(NULL));
 
@@ -193,10 +209,10 @@ void App_Startup(const int width, const int height, const char *title,
     }
     window_app.Init   = init;
     window_app.Update = update;
+    window_app.Render = on_render;
     window_app.OnExit = on_exit;
 
-    bitmap     Bitmap        = {0};
-    const bool bitmap_status = Bitmap_init(&Bitmap, window_app.hwnd);
+    const bool bitmap_status = Bitmap_init(&window_app.Bitmap, window_app.hwnd);
     if (!bitmap_status)
     {
         fprintf(stderr, "Error Init_Bitmap\n");
@@ -211,10 +227,15 @@ void App_Startup(const int width, const int height, const char *title,
         return;
     }
 
+    window_app.Init();
+
     bool Running = true;
 
+    Window_Clear_Screen(0x333333, &window_app.Bitmap);
     while (Running)
     {
+        Timer_Update(&Timer);
+
         MSG Message;
         while (PeekMessage(&Message, NULL, 0, 0, PM_REMOVE))
         {
@@ -224,33 +245,28 @@ void App_Startup(const int width, const int height, const char *title,
             DispatchMessage(&Message);
         }
 
-        Timer_Update(&Timer);
+        window_app.Update(Timer.ElapsedMilliSeconds);
 
-        if (Timer.ElapsedMilliSeconds > 500)
+        if (Timer.ElapsedMilliSeconds > 100)
         {
-            _Update();
+            Window_Clear_Screen(0x333333, &window_app.Bitmap);
+            window_app.Render();
             Timer_Start(&Timer);
         }
 
-        Window_Clear_Screen(0x333333, &Bitmap);
-
-        // 0xRRGGBB
-        Bitmap_Draw_Pixel(0, 0, 0xFF0000, &Bitmap);
-        Bitmap_Draw_Pixel(799, 799, 0x0000BB, &Bitmap);
-        Bitmap_Draw_Rectangle(50, 50, 100, 100, 0x00FF00, &Bitmap);
-
-        if (input_key_is_pressed(KEY_W))
-        {
-            fprintf(stdout, "W Key was PRESSED\n");
-        }
-        // if (input_key_was_down(KEY_W))
-        //{
-        //     fprintf(stdout, "W Key was RELEASED\n");
-        // }
-
-        input_update();
-        Window_Blit(&Bitmap);
+        input_update(); // THIS NEEDS TO BE AT THE END
+        Window_Blit(&window_app.Bitmap);
     }
+}
+
+void Window_Draw_Pixel(const int X, const int Y, const unsigned int colour)
+{
+    Bitmap_Draw_Pixel(X, Y, colour, &window_app.Bitmap);
+}
+
+void Window_Draw_Rectangle(const int X, const int Y, const int W, const int H, const unsigned int colour)
+{
+    Bitmap_Draw_Rectangle(X, Y, W, H, colour, &window_app.Bitmap);
 }
 
 LRESULT CALLBACK win32_process_message(HWND Window, UINT Message, WPARAM WParam, LPARAM LParam)

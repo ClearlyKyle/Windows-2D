@@ -14,6 +14,8 @@ typedef struct
 
 inline bool Bitmap_init(bitmap *Bitmap, HWND handle)
 {
+    memset((void *)Bitmap, 0, sizeof(bitmap));
+
     // Get client area dimensions
     RECT ClientRect;
     GetClientRect(handle, &ClientRect);
@@ -61,9 +63,7 @@ void Bitmap_Draw_Rectangle(const int          RectangleX,
 
     for (int Y = 0; Y < RectangleHeight; ++Y)
     {
-        for (int X = 0;
-             X < RectangleWidth;
-             ++X)
+        for (int X = 0; X < RectangleWidth; ++X)
         {
             *Pixel++ = colour;
         }

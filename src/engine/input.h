@@ -17,8 +17,8 @@ typedef enum
 {
     KEY_W = 87,
     KEY_A = 65,
-    KEY_S,
-    KEY_D,
+    KEY_S = 0x53,
+    KEY_D = 0x44,
 
     KEY_RSHIFT,
     KEY_LSHIFT,
