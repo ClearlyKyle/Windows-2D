@@ -1,9 +1,19 @@
 #ifndef __RIGID_H__
 #define __RIGID_H__
 
+#include <stdio.h>
 #include <stdbool.h>
 
-#include "../engine/maths/vec3.h"
+#include "Settings.h"
+#include "../engine/maths/maths.h"
+
+enum Shape_Type
+{
+    SHAPE_CIRCLE,
+    SHAPE_BOX,
+
+    SHAPE_COUNT
+};
 
 typedef struct Rigid
 {
@@ -22,6 +32,8 @@ typedef struct Rigid
     float radius;
     float width;
     float height;
+
+    enum Shape_Type type;
 
 } Rigid;
 
@@ -59,12 +71,70 @@ inline Rigid Rigid_Init(vec3  position,
 
 inline Rigid Rigid_Circle_Init(vec3 position, float radius, float density, float restitution, bool is_static)
 {
+    const float area = radius * radius * (float)M_PI;
+
+    if (area < MIN_BODY_SIZE || area > MAX_BODY_SIZE)
+    {
+        fprintf(stderr, "(area < MIN_BODY_SIZE || area > MAX_BODY_SIZE) area = %f\n", area);
+        return (Rigid){0};
+    }
+
+    if (density < MIN_DENSITY || density > MAX_DENSITY)
+    {
+        fprintf(stderr, "(density < MIN_DENSITY || density > MAX_DENSITY) density = %f\n", area);
+        return (Rigid){0};
+    }
+
+    restitution = clamp_f(restitution, 0.0f, 1.0f);
+
+    // Mass
+    const float mass = area * density;
+
     return (Rigid){
         .position    = position,
         .radius      = radius,
         .density     = density,
         .restitution = restitution,
         .is_static   = is_static,
+        .area        = area,
+        .mass        = mass,
+
+        .type = SHAPE_CIRCLE,
+    };
+}
+
+inline Rigid Rigid_Box_Init(vec3 position, float width, float height, float density, float restitution, bool is_static)
+{
+    const float area = width * height;
+
+    if (area < MIN_BODY_SIZE || area > MAX_BODY_SIZE)
+    {
+        fprintf(stderr, "(area < MIN_BODY_SIZE || area > MAX_BODY_SIZE) area = %f\n", area);
+        return (Rigid){0};
+    }
+
+    if (density < MIN_DENSITY || density > MAX_DENSITY)
+    {
+        fprintf(stderr, "(density < MIN_DENSITY || density > MAX_DENSITY) density = %f\n", area);
+        return (Rigid){0};
+    }
+
+    restitution = clamp_f(restitution, 0.0f, 1.0f);
+
+    // Mass
+    const float mass = area * density;
+
+    return (Rigid){
+        .position    = position,
+        .width       = width,
+        .height      = height,
+        .density     = density,
+        .restitution = restitution,
+        .is_static   = is_static,
+        .area        = area,
+        .mass        = mass,
+
+        .type = SHAPE_BOX,
     };
 }
 
