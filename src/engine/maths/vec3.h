@@ -49,7 +49,7 @@ inline vec3 vec3_div_scal(const vec3 v1, const float val)
 inline float vec3_length(const vec3 v1)
 {
     const vec3 tmp = vec3_mul(v1, v1);
-    return sqrt(tmp.x + tmp.y + tmp.z);
+    return sqrtf(tmp.x + tmp.y + tmp.z);
 }
 
 #define NORMALISE_VEC3(V) (V) = vec3_normalise((V))
