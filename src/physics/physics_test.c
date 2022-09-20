@@ -58,12 +58,7 @@ void Physics_update(const double elapsed_time)
 
         body->position.x += 0.1f;
 
-        // body->position.x = (float)wrap_int(20, Window_Width() - 20, (int)body->position.x);
-
-        if (body->position.x > (float)Window_Width() - 20)
-            body->position.x = 20.0f;
-        if (body->position.x < 20.0f)
-            body->position.x = (float)Window_Width() - 20;
+        body->position.x = wrap_float(20.0f, (float)Window_Width() - 20.0f, body->position.x);
     }
 }
 
