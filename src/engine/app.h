@@ -10,8 +10,11 @@ void App_Startup(const int width, const int height, const char *title,
                  Appfunction_ptr        on_render, // run on every loop
                  Appfunction_ptr        on_exit);         // run on exit of application
 
-void         Window_Draw_Pixel(const int X, const int Y, const unsigned int colour);
-void         Window_Draw_Rectangle(const int X, const int Y, const int W, const int H, const unsigned int colour);
+void Window_Draw_Pixel(const int X, const int Y, const unsigned int colour);
+void Window_Draw_Rectangle(const int X, const int Y, const int W, const int H, const unsigned int colour);
+void Window_Draw_Circle(const int radius, const int X, const int Y, const unsigned int colour);
+void Window_Draw_Circle_Outline(const float radius, const float X, const float Y, const unsigned int colour);
+
 void         Window_Set_Title(const char *title);
 unsigned int Window_Height(void);
 unsigned int Window_Width(void);

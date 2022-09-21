@@ -247,12 +247,9 @@ void App_Startup(const int width, const int height, const char *title,
 
         window_app.Update(Timer.ElapsedMilliSeconds);
 
-        if (Timer.ElapsedMilliSeconds > 100)
-        {
-            Window_Clear_Screen(0x333333, &window_app.Bitmap);
-            window_app.Render();
-            Timer_Start(&Timer);
-        }
+        Window_Clear_Screen(0x333333, &window_app.Bitmap);
+        window_app.Render();
+        Timer_Start(&Timer);
 
         input_update(); // THIS NEEDS TO BE AT THE END
         Window_Blit(&window_app.Bitmap);
@@ -267,6 +264,16 @@ void Window_Draw_Pixel(const int X, const int Y, const unsigned int colour)
 void Window_Draw_Rectangle(const int X, const int Y, const int W, const int H, const unsigned int colour)
 {
     Bitmap_Draw_Rectangle(X, Y, W, H, colour, &window_app.Bitmap);
+}
+
+void Window_Draw_Circle(const int radius, const int X, const int Y, const unsigned int colour)
+{
+    Bitmap_Draw_Circle(radius, X, Y, colour, &window_app.Bitmap);
+}
+
+void Window_Draw_Circle_Outline(const float radius, const float X, const float Y, const unsigned int colour)
+{
+    Bitmap_Draw_Circle_Outline(radius, X, Y, colour, &window_app.Bitmap);
 }
 
 LRESULT CALLBACK win32_process_message(HWND Window, UINT Message, WPARAM WParam, LPARAM LParam)

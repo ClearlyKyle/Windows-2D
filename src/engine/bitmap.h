@@ -3,6 +3,7 @@
 
 #include <windows.h>
 #include <stdbool.h>
+#include "./maths/maths.h"
 
 typedef struct
 {
@@ -90,6 +91,50 @@ void Bitmap_Draw_Rectangle_Bordered(int RectangleX, int RectangleY,
                           RectangleHeight - BorderSize * 2,
                           colour,
                           Bitmap);
+}
+
+void Bitmap_Draw_Circle(const int r, const int x, const int y, unsigned int colour, bitmap *Bitmap)
+{
+    // const int r2   = (const int)(r * r);
+    // const int area = r2 << 2;
+    // const int rr   = r << 1;
+
+    // for (int i = 0; i < area; i++)
+    //{
+    //     int tx = (i % rr) - r;
+    //     int ty = (i / rr) - r;
+
+    //    if (tx * tx + ty * ty <= r2)
+    //        Bitmap_Draw_Pixel(x + tx, y + ty, colour, Bitmap);
+    //}
+
+    const int radius_sqr = r * r;
+    for (int xx = -r; xx < r; xx++)
+    {
+        int hh = (int)sqrt(radius_sqr - xx * xx);
+        int rx = x + xx;
+        int ph = y + hh;
+
+        for (int yy = y - hh; yy < ph; yy++)
+        {
+            Bitmap_Draw_Pixel(rx, yy, colour, Bitmap);
+        }
+    }
+}
+
+#define NUM_OF_OUTLINE_SEGMENTS 360
+#define DEG2RAD (180 * M_1_PI)
+void Bitmap_Draw_Circle_Outline(const float r, const float x, const float y, unsigned int colour, bitmap *Bitmap)
+{
+    for (int i = 0; i < NUM_OF_OUTLINE_SEGMENTS; i++)
+    {
+        const double degInRad = i * DEG2RAD;
+        Bitmap_Draw_Pixel((int)(x + cos(degInRad) * r),
+                          (int)(y + sin(degInRad) * r),
+                          colour,
+                          Bitmap);
+        // glVertex2f(a + cos(degInRad) * r, b + sin(degInRad) * r);
+    }
 }
 
 #endif // __BITMAP_H__
