@@ -28,7 +28,7 @@ typedef struct Snake
     int          state;
 } Snake;
 
-Snake snake = {0};
+static Snake snake = {0};
 
 static int random_int(int min, int max)
 {
