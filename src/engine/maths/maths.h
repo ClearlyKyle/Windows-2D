@@ -26,6 +26,20 @@ inline int random_int(int min, int max)
     return min + rand() % (max + 1 - min);
 }
 
+inline unsigned int random_uint(void)
+{
+    unsigned int x = 0;
+
+    // return rand() ^ rand() << 1;
+
+    x = rand() & 0xff;
+    x |= (rand() & 0xff) << 8;
+    x |= (rand() & 0xff) << 16;
+    x |= (rand() & 0xff) << 24;
+
+    return x;
+}
+
 inline int wrap_int(int min, int max, int value)
 {
     if (value > max)
