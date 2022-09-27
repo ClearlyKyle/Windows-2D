@@ -56,7 +56,7 @@ inline float vec3_length(const vec3 v1)
 
 inline vec3 vec3_normalise(const vec3 v1)
 {
-    float length = vec3_length(v1);
+    const float length = vec3_length(v1);
     return (vec3){v1.x / length, v1.y / length, v1.z / length};
 }
 
