@@ -46,4 +46,16 @@ inline vec2 vec2_div_scal(const vec2 v1, const float val)
     return (vec2){v1.x / val, v1.y / val};
 }
 
+inline float vec2_length(const vec2 v1)
+{
+    const vec2 tmp = vec2_mul(v1, v1);
+    return sqrtf(tmp.x + tmp.y);
+}
+
+inline vec2 vec2_normalise(const vec2 v1)
+{
+    const float length = vec2_length(v1);
+    return (vec2){v1.x / length, v1.y / length};
+}
+
 #endif // __VEC2_H__
