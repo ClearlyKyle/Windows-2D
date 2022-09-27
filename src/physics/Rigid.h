@@ -138,11 +138,17 @@ inline Rigid Rigid_Box_Init(vec3 position, float width, float height, float dens
     };
 }
 
-inline void Rigid_Move_Amount(vec3 *position, const vec3 amount)
+inline void Rigid_Move_Amount_3D(vec3 *position, const vec3 amount)
 {
     position->x += amount.x;
     position->y += amount.y;
     position->z += amount.z;
+}
+
+inline void Rigid_Move_Amount_2D(vec3 *position, const float x, const float y)
+{
+    position->x += x;
+    position->y += y;
 }
 
 #endif // __RIGID_H__
