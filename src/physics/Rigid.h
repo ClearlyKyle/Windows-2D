@@ -17,8 +17,8 @@ enum Shape_Type
 
 typedef struct Rigid
 {
-    vec3  position;
-    vec3  linear_velocity;
+    vec2  position;
+    vec2  linear_velocity;
     float rotation;
     float rotational_velocity;
 
@@ -37,8 +37,8 @@ typedef struct Rigid
 
 } Rigid;
 
-inline Rigid Rigid_Init(vec3  position,
-                        vec3  linear_velocity,
+inline Rigid Rigid_Init(vec2  position,
+                        vec2  linear_velocity,
                         float rotation,
                         float rotational_velocity,
                         float density,
@@ -69,7 +69,7 @@ inline Rigid Rigid_Init(vec3  position,
     };
 }
 
-inline Rigid Rigid_Circle_Init(vec3 position, float radius, float density, float restitution, bool is_static)
+inline Rigid Rigid_Circle_Init(vec2 position, float radius, float density, float restitution, bool is_static)
 {
     const float area = radius * radius * (float)M_PI;
 
@@ -103,7 +103,7 @@ inline Rigid Rigid_Circle_Init(vec3 position, float radius, float density, float
     };
 }
 
-inline Rigid Rigid_Box_Init(vec3 position, float width, float height, float density, float restitution, bool is_static)
+inline Rigid Rigid_Box_Init(vec2 position, float width, float height, float density, float restitution, bool is_static)
 {
     const float area = width * height;
 
@@ -138,14 +138,13 @@ inline Rigid Rigid_Box_Init(vec3 position, float width, float height, float dens
     };
 }
 
-inline void Rigid_Move_Amount_3D(vec3 *position, const vec3 amount)
+inline void Rigid_Move_Amount_3D(vec2 *position, const vec2 amount)
 {
     position->x += amount.x;
     position->y += amount.y;
-    position->z += amount.z;
 }
 
-inline void Rigid_Move_Amount_2D(vec3 *position, const float x, const float y)
+inline void Rigid_Move_Amount_2D(vec2 *position, const float x, const float y)
 {
     position->x += x;
     position->y += y;
