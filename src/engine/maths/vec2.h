@@ -58,4 +58,17 @@ inline vec2 vec2_normalise(const vec2 v1)
     return (vec2){v1.x / length, v1.y / length};
 }
 
+inline float vec2_distance(const vec2 v1, const vec2 v2)
+{
+    float yy = v2.y - v1.y;
+    float xx = v2.x - v1.x;
+
+    yy *= yy;
+    xx *= xx;
+
+    const float d = sqrtf(yy + xx);
+
+    return d;
+}
+
 #endif // __VEC2_H__
