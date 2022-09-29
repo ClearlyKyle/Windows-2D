@@ -13,10 +13,10 @@
 #define SNAKE_SQAURE_SIZE 20
 #define NUMBER_OF_SQAURES (400 / SNAKE_SQAURE_SIZE) - 1
 
-typedef struct vec2
-{
-    int x, y;
-} vec2;
+// typedef struct vec2
+//{
+//     int x, y;
+// } vec2;
 
 typedef struct Snake
 {
@@ -29,11 +29,6 @@ typedef struct Snake
 } Snake;
 
 static Snake snake = {0};
-
-static int random_int(int min, int max)
-{
-    return min + rand() % (max + 1 - min);
-}
 
 static void snake_add_tail(const vec2 position)
 {
@@ -65,7 +60,7 @@ static void snake_move(void)
     case 'w':
         snake.tail[0].y -= SNAKE_SQAURE_SIZE;
         if (snake.tail[0].y < 0)
-            snake.tail[0].y = height - SNAKE_SQAURE_SIZE;
+            snake.tail[0].y = (float)(height - SNAKE_SQAURE_SIZE);
         break;
     case 's':
         snake.tail[0].y += SNAKE_SQAURE_SIZE;
@@ -75,7 +70,7 @@ static void snake_move(void)
     case 'a':
         snake.tail[0].x -= SNAKE_SQAURE_SIZE;
         if (snake.tail[0].x < 0)
-            snake.tail[0].x = width - SNAKE_SQAURE_SIZE;
+            snake.tail[0].x = (float)(width - SNAKE_SQAURE_SIZE);
         break;
     case 'd':
         snake.tail[0].x += SNAKE_SQAURE_SIZE;
@@ -89,11 +84,11 @@ static void snake_move(void)
     {
         vec2 position = snake.tail[i];
 
-        Window_Draw_Rectangle(position.x, position.y, SNAKE_SQAURE_SIZE, SNAKE_SQAURE_SIZE, 0xFF0000);
+        Window_Draw_Rectangle((int)position.x, (int)position.y, SNAKE_SQAURE_SIZE, SNAKE_SQAURE_SIZE, 0xFF0000);
     }
 
     // draw fruit
-    Window_Draw_Rectangle(snake.fruit.x, snake.fruit.y, SNAKE_SQAURE_SIZE, SNAKE_SQAURE_SIZE, 0xE4D400);
+    Window_Draw_Rectangle((int)snake.fruit.x, (int)snake.fruit.y, SNAKE_SQAURE_SIZE, SNAKE_SQAURE_SIZE, 0xE4D400);
 
     if (snake_self_collision())
     {
@@ -118,14 +113,14 @@ void Game_init(void)
     snake.size      = 1;
     snake.score     = 0;
     snake.state     = 1;
-    snake.tail[0].x = random_int(0, NUMBER_OF_SQAURES) * SNAKE_SQAURE_SIZE;
-    snake.tail[0].y = random_int(0, NUMBER_OF_SQAURES) * SNAKE_SQAURE_SIZE;
+    snake.tail[0].x = (float)random_int(0, NUMBER_OF_SQAURES) * SNAKE_SQAURE_SIZE;
+    snake.tail[0].y = (float)random_int(0, NUMBER_OF_SQAURES) * SNAKE_SQAURE_SIZE;
     snake.direction = 'a';
 
     // screen is 400px wide, so 400/SNAKE_SQAURE_SIZE = num of positions
-    const int fruit_x = random_int(0, NUMBER_OF_SQAURES) * SNAKE_SQAURE_SIZE;
-    const int fruit_y = random_int(0, NUMBER_OF_SQAURES) * SNAKE_SQAURE_SIZE;
-    snake.fruit       = (vec2){fruit_x, fruit_y};
+    const float fruit_x = (float)random_int(0, NUMBER_OF_SQAURES) * SNAKE_SQAURE_SIZE;
+    const float fruit_y = (float)random_int(0, NUMBER_OF_SQAURES) * SNAKE_SQAURE_SIZE;
+    snake.fruit         = (vec2){fruit_x, fruit_y};
 
     snake_update_score();
 }
@@ -150,9 +145,9 @@ void Game_update(const double elapsed_time)
         snake_add_tail(snake.fruit);
         snake_update_score();
 
-        const int fruit_x = random_int(0, NUMBER_OF_SQAURES) * SNAKE_SQAURE_SIZE;
-        const int fruit_y = random_int(0, NUMBER_OF_SQAURES) * SNAKE_SQAURE_SIZE;
-        snake.fruit       = (vec2){fruit_x, fruit_y};
+        const float fruit_x = (float)random_int(0, NUMBER_OF_SQAURES) * SNAKE_SQAURE_SIZE;
+        const float fruit_y = (float)random_int(0, NUMBER_OF_SQAURES) * SNAKE_SQAURE_SIZE;
+        snake.fruit         = (vec2){fruit_x, fruit_y};
     }
 }
 
