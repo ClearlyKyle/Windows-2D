@@ -137,4 +137,124 @@ void Bitmap_Draw_Circle_Outline(const float r, const float x, const float y, uns
     }
 }
 
+inline static void _vec2_swap(vec2 *a, vec2 *b)
+{
+    vec2 tmp = *a;
+    *a       = *b;
+    *b       = tmp;
+}
+
+static void Draw_Flat_Top_Triangle(const vec2 v0, const vec2 v1, const vec2 v2, unsigned int colour, bitmap *Bitmap)
+{
+    /*   ______   < ystart
+        \     /
+      m0 \   / m1
+          \ /
+                 < yend
+    */
+
+    // calculate slopes in screen space
+    // using dx/dy becuase of inverted screen space, so m = dx/dy
+    const float m0 = (v2.x - v0.x) / (v2.y - v0.y);
+    const float m1 = (v2.x - v1.x) / (v2.y - v1.y);
+
+    // calculate start and end scanlines
+    // ceil - rounds a number up to the next largest integer
+    const int ystart = (int)ceil(v0.y - 0.5f);
+    const int yend   = (int)ceil(v2.y - 0.5f); // scaneline after the last line drawn
+
+    for (int y = ystart; y < yend; y++)
+    {
+        // calculate the start and end X coordinates
+        // 0.5 - for calcualtating based on pixel centers
+        // x0 = m0 * (change in y) + x
+        // m0 * dy = dx <- this is the change in x, which we neeed, add on
+        // our original x coord to get back to triangle position
+        const float x0 = m0 * ((float)(y) + 0.5f - v0.y) + v0.x;
+        const float x1 = m1 * ((float)(y) + 0.5f - v1.y) + v1.x;
+
+        // calculate start and end pixels
+        const int xstart = (int)ceil(x0 - 0.5f);
+        const int xend   = (int)ceil(x1 - 0.5f);
+
+        for (int x = xstart; x < xend; x++)
+        {
+            Bitmap_Draw_Pixel(x, y, colour, Bitmap);
+        }
+    }
+}
+
+void Draw_Flat_Bottom_Triangle(const vec2 v0, const vec2 v1, const vec2 v2, unsigned int colour, bitmap *Bitmap)
+{
+    const float m0 = (v1.x - v0.x) / (v1.y - v0.y);
+    const float m1 = (v2.x - v0.x) / (v2.y - v0.y);
+
+    // calculate start and end scanlines
+    // ceil - rounds a number up to the next largest integer
+    const int ystart = (int)ceil(v0.y - 0.5f);
+    const int yend   = (int)ceil(v2.y - 0.5f); // scaneline after the last line drawn
+
+    for (int y = ystart; y < yend; y++)
+    {
+        const float x0 = m0 * ((float)(y) + 0.5f - v0.y) + v0.x;
+        const float x1 = m1 * ((float)(y) + 0.5f - v0.y) + v0.x;
+
+        // calculate start and end pixels
+        const int xstart = (int)ceil(x0 - 0.5f);
+        const int xend   = (int)ceil(x1 - 0.5f);
+
+        for (int x = xstart; x < xend; x++)
+        {
+            Bitmap_Draw_Pixel(x, y, colour, Bitmap);
+        }
+    }
+}
+
+void Bitmap_Draw_Triangle(vec2 v0, vec2 v1, vec2 v2, unsigned int colour, bitmap *Bitmap)
+{
+    // sort verticies by Y
+    if (v1.y < v0.y)
+        _vec2_swap(&v0, &v1);
+    if (v2.y < v1.y)
+        _vec2_swap(&v1, &v2);
+    if (v1.y < v0.y)
+        _vec2_swap(&v0, &v1);
+
+    if (v0.y == v1.y) // Flat top triangle
+    {
+        // Sort top vertivies by x
+        if (v1.x < v0.x)
+            _vec2_swap(&v0, &v1);
+        Draw_Flat_Top_Triangle(v0, v1, v2, colour, Bitmap);
+    }
+    else if (v1.y == v2.y) // Flat bottom triangle
+    {
+        // Sort bottom vertivies by x
+        if (v2.x < v1.x)
+            _vec2_swap(&v1, &v2);
+        Draw_Flat_Bottom_Triangle(v0, v1, v2, colour, Bitmap);
+    }
+    else // General triangle
+    {
+        // https://youtu.be/9A5TVh6kPLA?t=1029
+        // Find splitting vertex (along long side)
+        const float alpha_split = (v1.y - v0.y) / (v2.y - v0.y);
+        const vec2  v           = {
+            v0.x + (v2.x - v0.x) * alpha_split,
+            v0.y + (v2.y - v0.y) * alpha_split,
+        };
+
+        if (v1.x < v.x) // Major Right
+        {
+            Draw_Flat_Bottom_Triangle(v0, v1, v, colour, Bitmap);
+            Draw_Flat_Top_Triangle(v1, v, v2, colour, Bitmap);
+        }
+        else // Major left
+        {
+            Draw_Flat_Bottom_Triangle(v0, v, v1, colour, Bitmap);
+            Draw_Flat_Top_Triangle(v, v1, v2, colour, Bitmap);
+        }
+    }
+}
+
 #endif // __BITMAP_H__
