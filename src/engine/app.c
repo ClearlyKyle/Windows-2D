@@ -276,6 +276,11 @@ void Window_Draw_Circle_Outline(const float radius, const float X, const float Y
     Bitmap_Draw_Circle_Outline(radius, X, Y, colour, &window_app.Bitmap);
 }
 
+void Window_Draw_Triangle(const vec2 v0, const vec2 v1, const vec2 v2, unsigned int colour)
+{
+    Bitmap_Draw_Triangle(v0, v1, v2, colour, &window_app.Bitmap);
+}
+
 LRESULT CALLBACK win32_process_message(HWND Window, UINT Message, WPARAM WParam, LPARAM LParam)
 {
     switch (Message)
