@@ -1,6 +1,8 @@
 #ifndef __VEC2_H__
 #define __VEC2_H__
 
+#include "maths.h"
+
 typedef struct vec2
 {
     float x, y;
@@ -46,6 +48,11 @@ inline vec2 vec2_div_scal(const vec2 v1, const float val)
     return (vec2){v1.x / val, v1.y / val};
 }
 
+inline float vec2_dot(const vec2 v1, const vec2 v2)
+{
+    return v1.x * v2.x + v1.y * v2.y;
+}
+
 inline float vec2_length(const vec2 v1)
 {
     const vec2 tmp = vec2_mul(v1, v1);
@@ -69,6 +76,17 @@ inline float vec2_distance(const vec2 v1, const vec2 v2)
     const float d = sqrtf(yy + xx);
 
     return d;
+}
+
+inline vec2 vec2_transform(const vec2 v, float angle)
+{
+    const float c = cosf(angle);
+    const float s = sinf(angle);
+
+    const float rot_x = v.x * c - v.y * s;
+    const float rot_y = v.x * s + v.y * c;
+
+    return (vec2){rot_x, rot_y};
 }
 
 #endif // __VEC2_H__
