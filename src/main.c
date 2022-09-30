@@ -13,6 +13,7 @@ int main(void)
     //            Game_on_render,
     //            Game_on_exit);
 
+    // 2D Physics Test
     App_Startup(1000,
                 800,
                 "Something here",
