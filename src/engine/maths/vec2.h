@@ -13,6 +13,9 @@ typedef struct vec2
 #define VEC2_INIT_VALUE(VAL) \
     (vec2) { (VAL), (VAL) }
 
+#define VEC2_NEGATIVE(VEC) \
+    (vec2) { -(VEC).x, -(VEC).y }
+
 inline vec2 vec2_add(const vec2 v1, const vec2 v2)
 {
     return (vec2){v1.x + v2.x, v1.y + v2.y};
