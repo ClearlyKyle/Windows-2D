@@ -5,6 +5,7 @@
 #include <math.h>
 
 #include <stdlib.h>
+#include <float.h> // FLT_MAX / FLT_MIN
 
 #include "vec2.h"
 #include "vec3.h"
