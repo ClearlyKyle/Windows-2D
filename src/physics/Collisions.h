@@ -50,8 +50,8 @@ bool Box_intersection(const Rigid box1, const Rigid box2, vec2 *normal, float *d
     float min1, max1;
     float min2, max2;
 
-    *normal = (vec2){0.0f, 0.0f};
-    *depth  = 0.0f;
+    vec2  local_normal = (vec2){0.0f, 0.0f};
+    float local_depth  = FLT_MAX;
 
     for (size_t i = 0; i < box1.vert_count; i++)
     {
@@ -67,6 +67,14 @@ bool Box_intersection(const Rigid box1, const Rigid box2, vec2 *normal, float *d
         if (min1 >= max2 || min2 >= max1)
         {
             return false; // seperated
+        }
+
+        const float axis_depth = min((max2 - min1), (max1 - min2));
+
+        if (axis_depth < local_depth)
+        {
+            local_depth  = axis_depth;
+            local_normal = axis;
         }
     }
 
@@ -85,7 +93,27 @@ bool Box_intersection(const Rigid box1, const Rigid box2, vec2 *normal, float *d
         {
             return false; // seperated
         }
+
+        const float axis_depth = min((max2 - min1), (max1 - min2));
+
+        if (axis_depth < local_depth)
+        {
+            local_depth  = axis_depth;
+            local_normal = axis;
+        }
     }
+
+    local_depth /= vec2_length(local_normal);
+    local_normal = vec2_normalise(local_normal);
+
+    const vec2 direction = vec2_sub(box2.position, box1.position);
+
+    if (vec2_dot(direction, local_normal) < 0.0f)
+        *normal = VEC2_NEGATIVE(local_normal);
+    else
+        *normal = local_normal;
+
+    *depth = local_depth;
 
     return true; // touching
 }
