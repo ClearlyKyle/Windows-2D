@@ -35,6 +35,8 @@ typedef struct Rigid
 
     unsigned int *indicies;
     vec2         *verticies;
+    vec2         *transformed_verticies;
+    size_t        vert_count;
 
     enum Shape_Type type;
 
@@ -102,8 +104,10 @@ inline Rigid Rigid_Circle_Init(vec2 position, float radius, float density, float
         .area        = area,
         .mass        = mass,
 
-        .verticies = NULL,
-        .indicies  = NULL,
+        .verticies             = NULL,
+        .indicies              = NULL,
+        .transformed_verticies = NULL,
+        .vert_count            = 0,
 
         .type = SHAPE_CIRCLE,
     };
@@ -168,8 +172,10 @@ inline Rigid Rigid_Box_Init(vec2 position, float width, float height, float dens
         .area        = area,
         .mass        = mass,
 
-        .indicies  = indicies,
-        .verticies = _Box_Create_Verticies(width, height),
+        .indicies              = indicies,
+        .verticies             = _Box_Create_Verticies(width, height),
+        .transformed_verticies = calloc(4, sizeof(vec2)),
+        .vert_count            = 4,
 
         .type = SHAPE_BOX,
     };
@@ -199,6 +205,12 @@ inline void Rigid_Destroy(Rigid *body)
     {
         free(body->indicies);
         body->indicies = NULL;
+    }
+
+    if (body->transformed_verticies != NULL)
+    {
+        free(body->transformed_verticies);
+        body->transformed_verticies = NULL;
     }
 }
 
