@@ -5,12 +5,15 @@
 
 #define NUM_OF_BODIES 10
 
+// next video - 17
+
 enum colour
 {
-    COL_WHITE = 0xFFFFFF,
-    COL_RED   = 0xFF0000,
-    COL_GREEN = 0x00FF00,
-    COL_BLUE  = 0x0000FF,
+    COL_WHITE  = 0xFFFFFF,
+    COL_RED    = 0xFF0000,
+    COL_GREEN  = 0x00FF00,
+    COL_BLUE   = 0x0000FF,
+    COL_YELLOW = 0xFFFF00,
 };
 
 typedef struct Scene
@@ -31,8 +34,8 @@ void Physics_init(void)
     {
         // 0 - Circle
         // 1 - Box
-        // const int shape_type = random_int(0, 1);
-        const int shape_type = 1;
+        const int shape_type = random_int(0, 1);
+        // const int shape_type = 1;
 
         const float x = (float)random_int(padding, screen_w);
         const float y = (float)random_int(padding, screen_h);
@@ -106,8 +109,12 @@ void Physics_update(const double elapsed_time_ms)
     const float angle = 0.0f;
     for (size_t i = 0; i < NUM_OF_BODIES; i++)
     {
-        Rigid *body  = &scene.bodies[i];
-        vec2  *verts = body->verticies;
+        Rigid *body = &scene.bodies[i];
+
+        if (body->type != SHAPE_BOX)
+            continue;
+
+        vec2 *verts = body->verticies;
 
         verts[0] = vec2_transform(verts[0], angle);
         verts[1] = vec2_transform(verts[1], angle);
@@ -124,8 +131,9 @@ void Physics_update(const double elapsed_time_ms)
     // Compare each object one time, and not itself
     for (size_t i = 0; i < NUM_OF_BODIES - 1; i++)
     {
-        Rigid *body1         = &scene.bodies[i];
-        scene.body_colour[i] = COL_WHITE;
+        Rigid *body1                     = &scene.bodies[i];
+        scene.body_colour[i]             = COL_WHITE;
+        const enum Shape_Type body1_type = body1->type;
 
         for (size_t j = i + 1; j < NUM_OF_BODIES; j++)
         {
@@ -135,16 +143,45 @@ void Physics_update(const double elapsed_time_ms)
 
             scene.body_colour[j] = COL_WHITE;
 
-            if (Box_intersection(*body1, *body2, &normal, &depth))
+            const enum Shape_Type body2_type = body2->type;
+
+            if (body1_type == SHAPE_BOX && body2_type == SHAPE_CIRCLE)
             {
-                scene.body_colour[i] = COL_RED;
-                scene.body_colour[j] = COL_RED;
+                if (Box_Circle_collision(*body1, *body2, &normal, &depth))
+                {
+                    scene.body_colour[i] = COL_RED;
+                    scene.body_colour[j] = COL_RED;
 
-                const vec2 move_amount = vec2_mul_scal(normal, depth / 2);
+                    const vec2 move_amount = vec2_mul_scal(normal, depth / 2);
 
-                Rigid_Move_Amount_2D(&body1->position, -move_amount.x, -move_amount.y);
-                Rigid_Move_Amount_2D(&body2->position, move_amount.x, move_amount.y);
+                    Rigid_Move_Amount_2D(&body1->position, move_amount.x, move_amount.y);
+                    Rigid_Move_Amount_2D(&body2->position, -move_amount.x, -move_amount.y);
+                }
             }
+            else if (body2_type == SHAPE_BOX && body1_type == SHAPE_CIRCLE)
+            {
+                if (Box_Circle_collision(*body2, *body1, &normal, &depth))
+                {
+                    scene.body_colour[i] = COL_RED;
+                    scene.body_colour[j] = COL_RED;
+
+                    const vec2 move_amount = vec2_mul_scal(normal, depth / 2);
+
+                    Rigid_Move_Amount_2D(&body1->position, -move_amount.x, -move_amount.y);
+                    Rigid_Move_Amount_2D(&body2->position, move_amount.x, move_amount.y);
+                }
+            }
+
+            // if (Box_intersection(*body1, *body2, &normal, &depth))
+            //{
+            //     scene.body_colour[i] = COL_RED;
+            //     scene.body_colour[j] = COL_RED;
+
+            //    const vec2 move_amount = vec2_mul_scal(normal, depth / 2);
+
+            //    Rigid_Move_Amount_2D(&body1->position, -move_amount.x, -move_amount.y);
+            //    Rigid_Move_Amount_2D(&body2->position, move_amount.x, move_amount.y);
+            //}
 
             // if (Circle_intersection(*body1, *body2, &normal, &depth))
             //{
@@ -195,6 +232,8 @@ void Physics_on_render(void)
             Window_Draw_Triangle(v0, v1, v2, colour);
             Window_Draw_Triangle(v0, v2, v3, colour);
         }
+
+        Window_Draw_Pixel((int)body.position.x, (int)body.position.y, COL_YELLOW);
     }
 }
 
