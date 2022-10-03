@@ -1,6 +1,5 @@
-#include "./engine/app.h"
 #include "snake/game.h"
-#include "physics/physics_test.h"
+#include "physics_examples/collision_testing/collision_testing.h"
 
 int main(void)
 {
@@ -17,8 +16,8 @@ int main(void)
     App_Startup(1000,
                 800,
                 "Something here",
-                Physics_init,
-                Physics_update,
-                Physics_on_render,
-                Physics_on_exit);
+                Collision_testing_init,
+                Collision_testing_update,
+                Collision_testing_on_render,
+                Collision_testing_on_exit);
 }

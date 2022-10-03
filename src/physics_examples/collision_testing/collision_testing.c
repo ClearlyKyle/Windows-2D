@@ -1,11 +1,6 @@
-#include "physics_test.h"
-
-#include "Rigid.h"
-#include "Collisions.h"
+#include "collision_testing.h"
 
 #define NUM_OF_BODIES 10
-
-// next video - 17
 
 enum colour
 {
@@ -24,7 +19,7 @@ typedef struct Scene
 
 static Scene scene = {0};
 
-void Physics_init(void)
+void Collision_testing_init(void)
 {
     const unsigned int padding  = 50;
     const unsigned int screen_w = Window_Width() - padding;
@@ -66,7 +61,7 @@ void Physics_init(void)
     }
 }
 
-void Physics_update(const double elapsed_time_ms)
+void Collision_testing_update(const double elapsed_time_ms)
 {
     const double elapsed_time_second = elapsed_time_ms / 1000.0;
 
@@ -147,7 +142,7 @@ void Physics_update(const double elapsed_time_ms)
 
             if (body1_type == SHAPE_BOX && body2_type == SHAPE_CIRCLE)
             {
-                if (Box_Circle_collision(*body1, *body2, &normal, &depth))
+                if (collision_box_circle(*body1, *body2, &normal, &depth))
                 {
                     scene.body_colour[i] = COL_RED;
                     scene.body_colour[j] = COL_RED;
@@ -160,7 +155,7 @@ void Physics_update(const double elapsed_time_ms)
             }
             else if (body2_type == SHAPE_BOX && body1_type == SHAPE_CIRCLE)
             {
-                if (Box_Circle_collision(*body2, *body1, &normal, &depth))
+                if (collision_box_circle(*body2, *body1, &normal, &depth))
                 {
                     scene.body_colour[i] = COL_RED;
                     scene.body_colour[j] = COL_RED;
@@ -204,7 +199,7 @@ void Physics_update(const double elapsed_time_ms)
     }
 }
 
-void Physics_on_render(void)
+void Collision_testing_on_render(void)
 {
     Window_Draw_Circle((int)scene.bodies[0].radius, (int)scene.bodies[0].position.x, (int)scene.bodies[0].position.y, 0x330011);
 
@@ -237,7 +232,7 @@ void Physics_on_render(void)
     }
 }
 
-void Physics_on_exit(void)
+void Collision_testing_on_exit(void)
 {
     for (size_t i = 0; i < NUM_OF_BODIES; i++)
     {
