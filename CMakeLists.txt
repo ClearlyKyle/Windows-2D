@@ -10,4 +10,6 @@ foreach(name ${SOURCE_FILES})
     message(STATUS "${name}")
 endforeach()
 
+include_directories(src/engine)
+
 add_executable(Window-Window ${SOURCE_FILES})
