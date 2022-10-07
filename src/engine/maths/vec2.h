@@ -46,6 +46,7 @@ inline vec2 vec2_div(const vec2 v1, const vec2 v2)
     return (vec2){v1.x / v2.x, v1.y / v2.y};
 }
 
+// v1 / value;
 inline vec2 vec2_div_scal(const vec2 v1, const float val)
 {
     return (vec2){v1.x / val, v1.y / val};
