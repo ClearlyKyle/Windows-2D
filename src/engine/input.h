@@ -15,6 +15,7 @@ typedef enum
 
 typedef enum
 {
+    KEY_R = 82,
     KEY_W = 87,
     KEY_A = 65,
     KEY_S = 0x53,
