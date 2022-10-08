@@ -16,6 +16,12 @@ typedef struct vec2
 #define VEC2_NEGATIVE(VEC) \
     (vec2) { -(VEC).x, -(VEC).y }
 
+inline void vec2_make_negative(vec2 *v)
+{
+    v->x = -v->x;
+    v->y = -v->y;
+}
+
 inline vec2 vec2_add(const vec2 v1, const vec2 v2)
 {
     return (vec2){v1.x + v2.x, v1.y + v2.y};
@@ -63,6 +69,14 @@ inline float vec2_length(const vec2 v1)
     return sqrtf(tmp.x + tmp.y);
 }
 
+inline void vec2_normalise_r(vec2 *v1)
+{
+    const float length = 1.0f / vec2_length(*v1);
+
+    v1->x *= length;
+    v1->y *= length;
+}
+
 inline vec2 vec2_normalise(const vec2 v1)
 {
     const float length = vec2_length(v1);
@@ -71,13 +85,10 @@ inline vec2 vec2_normalise(const vec2 v1)
 
 inline float vec2_distance(const vec2 v1, const vec2 v2)
 {
-    float yy = v2.y - v1.y;
-    float xx = v2.x - v1.x;
+    const float xx = v2.x - v1.x;
+    const float yy = v2.y - v1.y;
 
-    yy *= yy;
-    xx *= xx;
-
-    const float d = sqrtf(yy + xx);
+    const float d = sqrtf((xx * xx) + (yy * yy));
 
     return d;
 }
