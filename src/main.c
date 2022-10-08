@@ -1,5 +1,6 @@
 #include "snake/game.h"
 #include "physics_examples/collision_testing/collision_testing.h"
+#include "physics_examples/physics_world/world.h"
 
 int main(void)
 {
@@ -13,11 +14,20 @@ int main(void)
     //            Game_on_exit);
 
     // 2D Physics Test
+    // App_Startup(1000,
+    //            800,
+    //            "Something here",
+    //            Collision_testing_init,
+    //            Collision_testing_update,
+    //            Collision_testing_on_render,
+    //            Collision_testing_on_exit);
+
+    // 2D Physics World
     App_Startup(1000,
                 800,
                 "Something here",
-                Collision_testing_init,
-                Collision_testing_update,
-                Collision_testing_on_render,
-                Collision_testing_on_exit);
+                World_init,
+                World_update,
+                World_on_render,
+                World_on_exit);
 }
