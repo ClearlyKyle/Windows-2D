@@ -31,9 +31,9 @@ static void _project_circle(const vec2 center, const float radius, const vec2 ax
     // Swap if they are wrong way round?
     if (*min > *max)
     {
-        float t = *min;
-        *min    = *max;
-        *max    = t;
+        const float t = *min;
+        *min          = *max;
+        *max          = t;
     }
 }
 
@@ -93,7 +93,8 @@ bool collision_box_box(const Rigid box1, const Rigid box2, vec2 *normal, float *
         const vec2 vert2 = box1.transformed_verticies[(i + 1) % box1.vert_count];
 
         const vec2 edge = vec2_sub(vert2, vert1);
-        const vec2 axis = (vec2){-edge.y, edge.x};
+        vec2       axis = (vec2){-edge.y, edge.x};
+        axis            = vec2_normalise(axis);
 
         _project_box_verticies(box1.transformed_verticies, box1.vert_count, axis, &min1, &max1);
         _project_box_verticies(box2.transformed_verticies, box2.vert_count, axis, &min2, &max2);
@@ -118,7 +119,8 @@ bool collision_box_box(const Rigid box1, const Rigid box2, vec2 *normal, float *
         const vec2 vert2 = box2.transformed_verticies[(i + 1) % box2.vert_count];
 
         const vec2 edge = vec2_sub(vert2, vert1);
-        const vec2 axis = (vec2){-edge.y, edge.x};
+        vec2       axis = (vec2){-edge.y, edge.x};
+        axis            = vec2_normalise(axis);
 
         _project_box_verticies(box1.transformed_verticies, box1.vert_count, axis, &min1, &max1);
         _project_box_verticies(box2.transformed_verticies, box2.vert_count, axis, &min2, &max2);
@@ -137,13 +139,10 @@ bool collision_box_box(const Rigid box1, const Rigid box2, vec2 *normal, float *
         }
     }
 
-    local_depth /= vec2_length(local_normal);
-    local_normal = vec2_normalise(local_normal);
-
     const vec2 direction = vec2_sub(box2.position, box1.position);
 
     if (vec2_dot(direction, local_normal) < 0.0f)
-        *normal = VEC2_NEGATIVE(local_normal);
+        *normal = (vec2){-local_normal.x, -local_normal.y};
     else
         *normal = local_normal;
 
@@ -176,6 +175,7 @@ bool collision_box_circle(const Rigid box, const Rigid circle, vec2 *normal, flo
 
         const vec2 edge = vec2_sub(vert2, vert1);
         axis            = (vec2){-edge.y, edge.x};
+        axis            = vec2_normalise(axis);
 
         _project_box_verticies(box.transformed_verticies, box.vert_count, axis, &min1, &max1);
         _project_circle(circle_center, circle_radius, axis, &min2, &max2);
@@ -216,13 +216,10 @@ bool collision_box_circle(const Rigid box, const Rigid circle, vec2 *normal, flo
         local_normal = axis;
     }
 
-    local_depth /= vec2_length(local_normal);
-    local_normal = vec2_normalise(local_normal);
-
     const vec2 direction = vec2_sub(box.position, circle_center);
 
     if (vec2_dot(direction, local_normal) < 0.0f)
-        *normal = VEC2_NEGATIVE(local_normal);
+        *normal = (vec2){-local_normal.x, -local_normal.y};
     else
         *normal = local_normal;
 
@@ -247,16 +244,16 @@ bool collision_test(const Rigid body1, const Rigid body2, vec2 *normal, float *d
         }
         else if (body2_type == SHAPE_CIRCLE)
         {
-            return collision_box_circle(body1, body2, normal, depth);
+            const bool res = collision_box_circle(body1, body2, normal, depth);
+            vec2_make_negative(normal);
+            return res;
         }
     }
     if (body1_type == SHAPE_CIRCLE)
     {
         if (body2_type == SHAPE_BOX)
         {
-            const bool res = collision_box_circle(body2, body1, normal, depth);
-            VEC2_NEGATIVE(*normal);
-            return res;
+            return collision_box_circle(body2, body1, normal, depth);
         }
         else if (body2_type == SHAPE_CIRCLE)
         {
