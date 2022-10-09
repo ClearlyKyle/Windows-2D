@@ -264,3 +264,28 @@ bool collision_test(const Rigid body1, const Rigid body2, vec2 *normal, float *d
     fprintf(stderr, "No collision test for types : %d, %d\n", body1_type, body2_type);
     return false;
 }
+
+void collision_resolve(Rigid *body1, Rigid *body2, const vec2 normal, const float depth)
+{
+    const vec2  relative_velocity = vec2_sub(body2->linear_velocity, body1->linear_velocity);
+    const float dot_relvel_normal = vec2_dot(relative_velocity, normal);
+
+    if (dot_relvel_normal > 0.0f)
+        return;
+
+    const float mass1 = 1.0f / body1->mass;
+    const float mass2 = 1.0f / body2->mass;
+
+    const float e = min(body1->restitution, body2->restitution);
+
+    float j = -(1.0f + e) * dot_relvel_normal;
+    j /= (mass1 + mass2);
+
+    const vec2 impulse = vec2_mul_scal(normal, j);
+
+    body1->linear_velocity.x -= (mass1 * impulse.x);
+    body1->linear_velocity.y -= (mass1 * impulse.y);
+
+    body2->linear_velocity.x += (mass2 * impulse.x);
+    body2->linear_velocity.y += (mass2 * impulse.y);
+}
