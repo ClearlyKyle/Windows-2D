@@ -27,6 +27,8 @@ typedef struct Rigid
     float restitution;
     float area;
 
+    vec2 force;
+
     bool is_static;
 
     float radius;
@@ -70,6 +72,25 @@ inline void Rigid_Destroy(Rigid *body)
         free(body->transformed_verticies);
         body->transformed_verticies = NULL;
     }
+}
+
+inline void Rigid_step(Rigid *body, const float time)
+{
+    if (body->is_static)
+        return;
+
+    // F = ma => a = F / m
+
+    body->linear_velocity.x += ((body->force.x / body->mass) * time);
+    body->linear_velocity.y += ((body->force.y / body->mass) * time);
+
+    body->position.x += (body->linear_velocity.x * time);
+    body->position.y += (body->linear_velocity.y * time);
+
+    body->rotation += (body->rotational_velocity * time);
+
+    body->force.x = 0.0f;
+    body->force.y = 0.0f;
 }
 
 #endif // __RIGID_H__

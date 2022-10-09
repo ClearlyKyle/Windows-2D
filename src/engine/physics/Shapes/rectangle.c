@@ -55,9 +55,12 @@ Rigid Rigid_Box_Init(vec2 position, float width, float height, float density, fl
         .height      = height,
         .density     = density,
         .restitution = restitution,
-        .is_static   = is_static,
-        .area        = area,
-        .mass        = mass,
+
+        .force = {0},
+
+        .is_static = is_static,
+        .area      = area,
+        .mass      = mass,
 
         .indicies              = indicies,
         .verticies             = _Box_Create_Verticies(width, height),
