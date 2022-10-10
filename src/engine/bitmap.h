@@ -11,6 +11,7 @@ typedef struct
     BITMAPINFO Info;
     int        Width;
     int        Height;
+    size_t     PixelCount;
 } bitmap;
 
 inline bool Bitmap_init(bitmap *Bitmap, HWND handle)
@@ -25,6 +26,7 @@ inline bool Bitmap_init(bitmap *Bitmap, HWND handle)
 
     // Allocate memory for the bitmap
     const int BytesPerPixel = 4;
+    Bitmap->PixelCount      = Bitmap->Width * Bitmap->Height * BytesPerPixel;
 
     Bitmap->Memory = VirtualAlloc(0,
                                   Bitmap->Width * Bitmap->Height * BytesPerPixel,
