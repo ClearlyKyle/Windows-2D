@@ -153,18 +153,9 @@ bool Initialise_Window(const char *title, const unsigned x, const unsigned y, co
     return true;
 }
 
-typedef uint32_t u32;
-static void      Window_Clear_Screen(const unsigned int colour, bitmap *const Bitmap)
+static void Window_Clear_Screen(const unsigned int colour, bitmap *const Bitmap)
 {
-    const u32 num_of_pixels = Bitmap->Width * Bitmap->Height;
-    // for (u32 *pixel     = (u32 *)Bitmap->Memory,
-    //          *end_pixel = ((u32 *)Bitmap->Memory + num_of_pixels);
-    //      pixel != end_pixel;
-    //      pixel++)
-    //{
-    //     *pixel = colour;
-    // }
-    memset(Bitmap->Memory, colour, num_of_pixels * 4);
+    memset(Bitmap->Memory, colour, Bitmap->PixelCount);
 }
 
 static void Window_Blit(bitmap *Bitmap)
@@ -231,6 +222,10 @@ void App_Startup(const int width, const int height, const char *title,
 
     bool Running = true;
 
+    size_t frame_counter          = 1;
+    size_t AVG_FPS_PER_X_FRAMES   = 500;
+    double frame_time_accumulator = 0.0;
+
     Window_Clear_Screen(0x333333, &window_app.Bitmap);
     while (Running)
     {
@@ -253,6 +248,18 @@ void App_Startup(const int width, const int height, const char *title,
 
         input_update(); // THIS NEEDS TO BE AT THE END
         Window_Blit(&window_app.Bitmap);
+
+        if ((frame_counter % AVG_FPS_PER_X_FRAMES) == 0)
+        {
+            const double avg_frame_time_ms = frame_time_accumulator / (double)AVG_FPS_PER_X_FRAMES;
+            const double avg_fps           = 1000.0 / avg_frame_time_ms;
+            fprintf(stderr, "Avg FPS : %f, %fms\n", avg_fps, avg_frame_time_ms);
+
+            frame_counter          = 1;
+            frame_time_accumulator = 0.0;
+        }
+        frame_counter++;
+        frame_time_accumulator += Timer.ElapsedMilliSeconds;
     }
 }
 
@@ -309,9 +316,9 @@ LRESULT CALLBACK win32_process_message(HWND Window, UINT Message, WPARAM WParam,
         else if (WParam == VK_SHIFT)
         {
             // Annoyingly, KF_EXTENDED is not set for shift keys.
-            u32 left_shift = MapVirtualKey(VK_LSHIFT, MAPVK_VK_TO_VSC);
-            u32 scancode   = ((LParam & (0xFF << 16)) >> 16);
-            key            = scancode == left_shift ? KEY_LSHIFT : KEY_RSHIFT;
+            uint32_t left_shift = MapVirtualKey(VK_LSHIFT, MAPVK_VK_TO_VSC);
+            uint32_t scancode   = ((LParam & (0xFF << 16)) >> 16);
+            key                 = scancode == left_shift ? KEY_LSHIFT : KEY_RSHIFT;
         }
         else if (WParam == VK_CONTROL)
         {
