@@ -126,76 +126,74 @@ void Collision_testing_update(const double elapsed_time_ms)
     // Compare each object one time, and not itself
     for (size_t i = 0; i < NUM_OF_BODIES - 1; i++)
     {
-        Rigid *body1                     = &scene.bodies[i];
-        scene.body_colour[i]             = COL_WHITE;
-        const enum Shape_Type body1_type = body1->type;
+        Rigid *body1 = &scene.bodies[i];
 
         for (size_t j = i + 1; j < NUM_OF_BODIES; j++)
         {
-            Rigid *body2  = &scene.bodies[j];
-            vec2   normal = {0};
-            float  depth  = 0.0f;
+            Rigid *body2 = &scene.bodies[j];
 
-            scene.body_colour[j] = COL_WHITE;
+            if (body1->is_static && body2->is_static)
+                continue;
 
-            const enum Shape_Type body2_type = body2->type;
+            vec2  normal = {0};
+            float depth  = 0.0f;
 
-            if (body1_type == SHAPE_BOX && body2_type == SHAPE_CIRCLE)
+            if (collision_test(*body1, *body2, &normal, &depth))
             {
-                if (collision_box_circle(*body1, *body2, &normal, &depth))
+                if (body1->is_static)
                 {
-                    scene.body_colour[i] = COL_RED;
-                    scene.body_colour[j] = COL_RED;
-
-                    const vec2 move_amount = vec2_mul_scal(normal, depth / 2);
-
-                    Rigid_Move_Amount_2D(&body1->position, move_amount.x, move_amount.y);
-                    Rigid_Move_Amount_2D(&body2->position, -move_amount.x, -move_amount.y);
+                    const vec2 move_amount = vec2_mul_scal(normal, depth);
+                    Rigid_Move_Amount_2D(&body2->position, move_amount.x, move_amount.y);
                 }
-            }
-            else if (body2_type == SHAPE_BOX && body1_type == SHAPE_CIRCLE)
-            {
-                if (collision_box_circle(*body2, *body1, &normal, &depth))
+                else if (body2->is_static)
                 {
-                    scene.body_colour[i] = COL_RED;
-                    scene.body_colour[j] = COL_RED;
-
-                    const vec2 move_amount = vec2_mul_scal(normal, depth / 2);
-
+                    const vec2 move_amount = vec2_mul_scal(normal, depth);
+                    Rigid_Move_Amount_2D(&body1->position, -move_amount.x, -move_amount.y);
+                }
+                else
+                {
+                    const vec2 move_amount = vec2_mul_scal(normal, depth / 2.0f);
                     Rigid_Move_Amount_2D(&body1->position, -move_amount.x, -move_amount.y);
                     Rigid_Move_Amount_2D(&body2->position, move_amount.x, move_amount.y);
                 }
+
+                collision_resolve(body1, body2, normal, depth);
             }
-
-            // if (Box_intersection(*body1, *body2, &normal, &depth))
-            //{
-            //     scene.body_colour[i] = COL_RED;
-            //     scene.body_colour[j] = COL_RED;
-
-            //    const vec2 move_amount = vec2_mul_scal(normal, depth / 2);
-
-            //    Rigid_Move_Amount_2D(&body1->position, -move_amount.x, -move_amount.y);
-            //    Rigid_Move_Amount_2D(&body2->position, move_amount.x, move_amount.y);
-            //}
-
-            // if (Circle_intersection(*body1, *body2, &normal, &depth))
-            //{
-            //     const vec2 move_amount = vec2_mul_scal(normal, depth / 2);
-
-            //    Rigid_Move_Amount_2D(&body1->position, -move_amount.x, -move_amount.y);
-            //    Rigid_Move_Amount_2D(&body2->position, move_amount.x, move_amount.y);
-            //}
         }
     }
 
-    // Screen Wrapping
+    // SCREEN WRAPPING
+    const int w = (const int)Window_Width();
+    const int h = (const int)Window_Height();
     for (size_t i = 0; i < NUM_OF_BODIES; i++)
     {
         Rigid *body = &scene.bodies[i];
-        // Rigid_Move_Amount(&body->position, (vec3){0.0f, 0.1f, 0.0f});
 
-        body->position.x = wrap_float(50.0f, (float)Window_Width() - 50.0f, body->position.x);
-        body->position.y = wrap_float(50.0f, (float)Window_Height() - 50.0f, body->position.y);
+        if (body->is_static)
+            continue;
+
+        body->position.x = wrap_float(0.0f, (float)w, body->position.x);
+        body->position.y = wrap_float(0.0f, (float)h, body->position.y);
+    }
+
+    for (size_t i = 0; i < NUM_OF_BODIES; i++)
+    {
+        Rigid *body = &scene.bodies[i];
+
+        if (body->type != SHAPE_BOX)
+            continue;
+
+        vec2 *verts = body->verticies;
+
+        verts[0] = vec2_transform(verts[0], angle);
+        verts[1] = vec2_transform(verts[1], angle);
+        verts[2] = vec2_transform(verts[2], angle);
+        verts[3] = vec2_transform(verts[3], angle);
+
+        body->transformed_verticies[0] = vec2_add(verts[0], body->position);
+        body->transformed_verticies[1] = vec2_add(verts[1], body->position);
+        body->transformed_verticies[2] = vec2_add(verts[2], body->position);
+        body->transformed_verticies[3] = vec2_add(verts[3], body->position);
     }
 }
 
