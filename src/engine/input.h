@@ -42,7 +42,10 @@ bool input_key_was_down(const keys key);
 bool input_key_was_up(const keys key);
 
 // MOUSE input
+bool input_mouse_is_clicked(const buttons button);
 bool input_mouse_is_botton_down(const buttons button);
 bool input_mouse_is_botton_up(const buttons button);
-void input_mouse_process_move(signed int x, signed int y);
+void input_mouse_process_move(unsigned int x, unsigned int y);
+void input_mouse_position(unsigned int *x, unsigned int *y);
+
 #endif // __INPUT_H__

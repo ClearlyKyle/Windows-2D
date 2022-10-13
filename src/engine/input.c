@@ -72,6 +72,11 @@ void intput_process_mouse(buttons button, bool pressed)
     state.mouse_current.buttons[button] = pressed;
 }
 
+bool input_mouse_is_clicked(const buttons button)
+{
+    return (state.mouse_previous.buttons[button] == false && state.mouse_current.buttons[button] != false);
+}
+
 bool input_mouse_is_botton_down(const buttons button)
 {
     return state.mouse_current.buttons[button] == true;
@@ -82,7 +87,7 @@ bool input_mouse_is_botton_up(const buttons button)
     return state.mouse_current.buttons[button] == false;
 }
 
-void input_mouse_process_move(signed int x, signed int y)
+void input_mouse_process_move(unsigned int x, unsigned int y)
 {
     // Only process if actually different
     if (state.mouse_current.x != x || state.mouse_current.y != y)
@@ -93,6 +98,8 @@ void input_mouse_process_move(signed int x, signed int y)
     }
 }
 
-// void input_process_mouse_wheel(i8 z_delta)
-//{
-// }
+void input_mouse_position(unsigned int *x, unsigned int *y)
+{
+    *x = state.mouse_current.x;
+    *y = state.mouse_current.y;
+}
