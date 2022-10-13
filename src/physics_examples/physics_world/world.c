@@ -47,9 +47,37 @@ void World_init(void)
     world.body_colour[0] = COL_WHITE;
 }
 
+static void add_body_to_world(unsigned int x, unsigned int y)
+{
+    for (Rigid **p = &world.bodies[0], **end = &world.bodies[NUM_OF_BODIES]; p != end; p++)
+    {
+        if (*p == NULL)
+        {
+            Rigid *circle = malloc(sizeof(*circle));
+            *circle       = Rigid_Circle_Init((vec2){(float)x, (float)y},
+                                              20.0f,
+                                              2.0f,
+                                              0.5f,
+                                              false);
+            *p            = circle;
+            break;
+        }
+    }
+}
+
 void World_update(const double elapsed_time_ms)
 {
     const double elapsed_time_second = elapsed_time_ms / 1000.0;
+
+    if (input_mouse_is_clicked(BUTTON_LEFT))
+    {
+        unsigned int mouse_x;
+        unsigned int mouse_y;
+        input_mouse_position(&mouse_x, &mouse_y);
+        printf("Mouse (%d, %d)\n", mouse_x, mouse_y);
+
+        add_body_to_world(mouse_x, mouse_y);
+    }
 
     const float angle = 0.0f;
     for (size_t i = 0; i < NUM_OF_BODIES; i++)
@@ -121,6 +149,9 @@ void World_update(const double elapsed_time_ms)
     for (size_t i = 0; i < NUM_OF_BODIES && world.bodies[i]; i++)
     {
         Rigid *body = world.bodies[i];
+
+        if (body == NULL)
+            continue;
 
         if (body->type != SHAPE_BOX)
             continue;
