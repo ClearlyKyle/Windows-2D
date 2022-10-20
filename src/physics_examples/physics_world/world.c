@@ -49,17 +49,32 @@ void World_init(void)
 
 static void add_body_to_world(unsigned int x, unsigned int y)
 {
-    for (Rigid **p = &world.bodies[0], **end = &world.bodies[NUM_OF_BODIES]; p != end; p++)
+    const Rigid *const *const end = &world.bodies[NUM_OF_BODIES];
+    for (Rigid **p = &world.bodies[0]; p != end; p++)
     {
         if (*p == NULL)
         {
-            Rigid *circle = malloc(sizeof(*circle));
-            *circle       = Rigid_Circle_Init((vec2){(float)x, (float)y},
-                                              20.0f,
-                                              2.0f,
-                                              0.5f,
-                                              false);
-            *p            = circle;
+            const int shape_type = random_int(0, 1);
+
+            Rigid *body = malloc(sizeof(*body));
+            if (shape_type == SHAPE_CIRCLE)
+            {
+                *body = Rigid_Circle_Init((vec2){(float)x, (float)y},
+                                          20.0f,
+                                          2.0f,
+                                          0.5f,
+                                          false);
+            }
+            else if (shape_type == SHAPE_BOX)
+            {
+                *body = Rigid_Box_Init((vec2){(float)x, (float)y},
+                                       50.0f,
+                                       50.0f,
+                                       0.5f,
+                                       0.5f,
+                                       false);
+            }
+            *p = body;
             break;
         }
     }
