@@ -153,9 +153,32 @@ bool Initialise_Window(const char *title, const unsigned x, const unsigned y, co
     return true;
 }
 
+#include <emmintrin.h>
 static void Window_Clear_Screen(const unsigned int colour, bitmap *const Bitmap)
-{
-    memset(Bitmap->Memory, colour, Bitmap->PixelCount);
+{ // 0xRRGGBBAA
+
+#if 1
+    const int red   = (colour >> 24) & 0xFF;
+    const int green = (colour >> 16) & 0xFF;
+    const int blue  = (colour >> 8) & 0xFF;
+    const int alpha = colour & 0xFF;
+
+    const __m128i clear_colour = {
+        red, green, blue, alpha,
+        red, green, blue, alpha,
+        red, green, blue, alpha,
+        red, green, blue, alpha};
+
+    for (unsigned int i = 0; i < window_app.client_width * window_app.client_height; i += 4)
+    {
+        _mm_store_si128((__m128i *)((unsigned int *)Bitmap->Memory + i), clear_colour);
+    }
+#elif
+    for (unsigned int i = 0; i < window_app.client_width * window_app.client_height; i += 1)
+    {
+        memcpy_s((unsigned int *)Bitmap->Memory + i, sizeof(unsigned int), (const void *)&colour, sizeof(unsigned int));
+    }
+#endif
 }
 
 static void Window_Blit(bitmap *Bitmap)
@@ -226,7 +249,7 @@ void App_Startup(const int width, const int height, const char *title,
     size_t AVG_FPS_PER_X_FRAMES   = 500;
     double frame_time_accumulator = 0.0;
 
-    Window_Clear_Screen(0x333333, &window_app.Bitmap);
+    Window_Clear_Screen(0xFF0000FF, &window_app.Bitmap);
     while (Running)
     {
         Timer_Update(&Timer);
@@ -242,7 +265,7 @@ void App_Startup(const int width, const int height, const char *title,
 
         window_app.Update(Timer.ElapsedMilliSeconds);
 
-        Window_Clear_Screen(0x333333, &window_app.Bitmap);
+        Window_Clear_Screen(0xFF0000FF, &window_app.Bitmap);
         window_app.Render();
         Timer_Start(&Timer);
 
@@ -265,6 +288,10 @@ void App_Startup(const int width, const int height, const char *title,
 
 void Window_Draw_Pixel(const int X, const int Y, const unsigned int colour)
 {
+    if (X > (int)window_app.client_width || X < 0)
+        return;
+    if (Y > (int)window_app.client_height || Y < 0)
+        return;
     Bitmap_Draw_Pixel(X, Y, colour, &window_app.Bitmap);
 }
 
