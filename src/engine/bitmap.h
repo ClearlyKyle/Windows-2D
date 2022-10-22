@@ -46,13 +46,11 @@ inline bool Bitmap_init(bitmap *Bitmap, HWND handle)
     return true;
 }
 
+// 0xRRGGBB
 inline void Bitmap_Draw_Pixel(const int X, const int Y, const unsigned int colour, bitmap *Bitmap)
 {
-    const int new_X = ((X % Bitmap->Width) + Bitmap->Width) % Bitmap->Width;
-    const int new_Y = ((Y % Bitmap->Height) + Bitmap->Height) % Bitmap->Height;
-
     unsigned int *pixel = (unsigned int *)Bitmap->Memory;
-    pixel += new_Y * Bitmap->Width + new_X;
+    pixel += Y * Bitmap->Width + X;
     *pixel = colour;
 }
 
