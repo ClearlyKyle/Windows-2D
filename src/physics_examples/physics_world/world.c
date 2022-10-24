@@ -44,7 +44,7 @@ void World_init(void)
                                    true);
 
     world.bodies[0]      = ground;
-    world.body_colour[0] = COL_WHITE;
+    world.body_colour[0] = COL_RED;
 }
 
 static void add_body_to_world(unsigned int x, unsigned int y)
