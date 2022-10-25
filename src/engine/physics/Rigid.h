@@ -74,15 +74,15 @@ inline void Rigid_Destroy(Rigid *body)
     }
 }
 
-inline void Rigid_step(Rigid *body, const float time)
+inline void Rigid_step(Rigid *body, const float time, const vec2 gravity)
 {
     if (body->is_static)
         return;
 
     // F = ma => a = F / m
 
-    body->linear_velocity.x += ((body->force.x / body->mass) * time);
-    body->linear_velocity.y += ((body->force.y / body->mass) * time);
+    body->linear_velocity.x += (gravity.x * time);
+    body->linear_velocity.y += (gravity.y * time);
 
     body->position.x += (body->linear_velocity.x * time);
     body->position.y += (body->linear_velocity.y * time);
