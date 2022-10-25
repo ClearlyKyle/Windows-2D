@@ -21,10 +21,12 @@ enum colour
     COL_YELLOW = 0xFFFF00,
 };
 
-const unsigned int static_colour    = COL_RED;
-const unsigned int normal_colour    = COL_WHITE;
-const unsigned int player_colour    = COL_BLUE;
-const unsigned int collision_colour = COL_YELLOW;
+const static unsigned int static_colour    = COL_RED;
+const static unsigned int normal_colour    = COL_WHITE;
+const static unsigned int player_colour    = COL_BLUE;
+const static unsigned int collision_colour = COL_YELLOW;
+
+const static vec2 WORLD_GRAVITY = {0.0f, 9.8f};
 
 void World_init(void)
 {
@@ -104,6 +106,8 @@ void World_update(const double elapsed_time_ms)
 
         if (body->type != SHAPE_BOX)
             continue;
+
+        Rigid_step(body, (const float)elapsed_time_second, WORLD_GRAVITY);
 
         vec2 *verts = body->verticies;
 
