@@ -93,4 +93,48 @@ inline void Rigid_step(Rigid *body, const float time, const vec2 gravity)
     body->force.y = 0.0f;
 }
 
+inline AABB AABB_Get(const Rigid body)
+{
+    float minX = FLT_MAX;
+    float minY = FLT_MAX;
+    float maxX = FLT_MIN;
+    float maxY = FLT_MIN;
+
+    if (body.type == SHAPE_BOX)
+    {
+        vec2 *vertices = body.transformed_verticies;
+
+        for (int i = 0; i < body.vert_count; i++)
+        {
+            vec2 v = vertices[i];
+
+            if (v.x < minX)
+            {
+                minX = v.x;
+            }
+            if (v.x > maxX)
+            {
+                maxX = v.x;
+            }
+            if (v.y < minY)
+            {
+                minY = v.y;
+            }
+            if (v.y > maxY)
+            {
+                maxY = v.y;
+            }
+        }
+    }
+    else if (body.type == SHAPE_CIRCLE)
+    {
+        minX = body.position.x - body.radius;
+        minY = body.position.y - body.radius;
+        maxX = body.position.x + body.radius;
+        maxY = body.position.y + body.radius;
+    }
+
+    return AABB_Create(minX, minY, maxX, maxY);
+}
+
 #endif // __RIGID_H__
