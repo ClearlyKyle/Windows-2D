@@ -1,7 +1,7 @@
 #ifndef __VEC2_H__
 #define __VEC2_H__
 
-#include "maths.h"
+#include <math.h>
 
 typedef struct vec2
 {

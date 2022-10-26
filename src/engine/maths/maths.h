@@ -9,6 +9,7 @@
 
 #include "vec2.h"
 #include "vec3.h"
+#include "AABB.h"
 
 inline double clamp_d(double d, double min, double max)
 {
