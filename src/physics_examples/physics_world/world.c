@@ -1,13 +1,12 @@
 #include "World.h"
 
-#define NUM_OF_BODIES 10
-
-// 13
+#define MAX_NUM_OF_BODIES 10
 
 typedef struct World
 {
-    Rigid       *bodies[NUM_OF_BODIES];
-    unsigned int body_colour[NUM_OF_BODIES];
+    size_t       current_number_of_bodies;
+    Rigid       *bodies[MAX_NUM_OF_BODIES];
+    unsigned int body_colour[MAX_NUM_OF_BODIES];
 } World;
 
 static World world = {0};
@@ -34,7 +33,7 @@ void World_init(void)
     const unsigned int screen_w = Window_Width();
     const unsigned int screen_h = Window_Height();
 
-    for (size_t i = 0; i < NUM_OF_BODIES; i++)
+    for (size_t i = 0; i < MAX_NUM_OF_BODIES; i++)
         world.bodies[i] = NULL;
 
     Rigid *ground = malloc(sizeof(*ground));
@@ -45,40 +44,43 @@ void World_init(void)
                                    1.0f,
                                    true);
 
-    world.bodies[0]      = ground;
-    world.body_colour[0] = COL_RED;
+    world.bodies[0]                = ground;
+    world.body_colour[0]           = COL_RED;
+    world.current_number_of_bodies = 1;
 }
 
 static void add_body_to_world(unsigned int x, unsigned int y)
 {
-    const Rigid *const *const end = &world.bodies[NUM_OF_BODIES];
-    for (Rigid **p = &world.bodies[0]; p != end; p++)
-    {
-        if (*p == NULL)
-        {
-            const int shape_type = random_int(0, 1);
+    if (world.current_number_of_bodies == MAX_NUM_OF_BODIES)
+        return;
 
-            Rigid *body = malloc(sizeof(*body));
-            if (shape_type == SHAPE_CIRCLE)
-            {
-                *body = Rigid_Circle_Init((vec2){(float)x, (float)y},
-                                          20.0f,
-                                          2.0f,
-                                          0.5f,
-                                          false);
-            }
-            else if (shape_type == SHAPE_BOX)
-            {
-                *body = Rigid_Box_Init((vec2){(float)x, (float)y},
-                                       50.0f,
-                                       50.0f,
-                                       0.5f,
-                                       0.5f,
-                                       false);
-            }
-            *p = body;
-            break;
+    Rigid **p = &world.bodies[world.current_number_of_bodies];
+
+    if (*p == NULL)
+    {
+        // const int shape_type = random_int(0, 1);
+        const int shape_type = 0;
+
+        Rigid *body = malloc(sizeof(*body));
+        if (shape_type == SHAPE_CIRCLE)
+        {
+            *body = Rigid_Circle_Init((vec2){(float)x, (float)y},
+                                      20.0f,
+                                      2.0f,
+                                      0.5f,
+                                      false);
         }
+        else if (shape_type == SHAPE_BOX)
+        {
+            *body = Rigid_Box_Init((vec2){(float)x, (float)y},
+                                   50.0f,
+                                   50.0f,
+                                   2.0f,
+                                   0.6f,
+                                   false);
+        }
+        *p = body;
+        world.current_number_of_bodies++;
     }
 }
 
@@ -97,17 +99,14 @@ void World_update(const double elapsed_time_ms)
     }
 
     const float angle = 0.0f;
-    for (size_t i = 0; i < NUM_OF_BODIES; i++)
+    for (size_t i = 0; i < world.current_number_of_bodies; i++)
     {
         Rigid *body = world.bodies[i];
 
-        if (body == NULL)
-            continue;
+        Rigid_step(body, (const float)elapsed_time_second * 10.0f, WORLD_GRAVITY);
 
         if (body->type != SHAPE_BOX)
             continue;
-
-        Rigid_step(body, (const float)elapsed_time_second, WORLD_GRAVITY);
 
         vec2 *verts = body->verticies;
 
@@ -123,54 +122,61 @@ void World_update(const double elapsed_time_ms)
     }
 
     // COLLISIONS
-    // for (size_t i = 0; i < NUM_OF_BODIES - 1; i++)
-    //{
-    //    Rigid *body1 = &world.bodies[i];
-
-    //    for (size_t j = i + 1; j < NUM_OF_BODIES; j++)
-    //    {
-    //        Rigid *body2 = &world.bodies[j];
-
-    //        if (body1->is_static && body2->is_static)
-    //            continue;
-
-    //        vec2  normal = {0};
-    //        float depth  = 0.0f;
-
-    //        if (collision_test(*body1, *body2, &normal, &depth))
-    //        {
-    //            world.body_colour[i] = collision_colour;
-    //            world.body_colour[j] = collision_colour;
-
-    //            if (body1->is_static)
-    //            {
-    //                const vec2 move_amount = vec2_mul_scal(normal, depth);
-    //                Rigid_Move_Amount_2D(&body2->position, move_amount.x, move_amount.y);
-    //            }
-    //            else if (body2->is_static)
-    //            {
-    //                const vec2 move_amount = vec2_mul_scal(normal, depth);
-    //                Rigid_Move_Amount_2D(&body1->position, -move_amount.x, -move_amount.y);
-    //            }
-    //            else
-    //            {
-    //                const vec2 move_amount = vec2_mul_scal(normal, depth / 2.0f);
-    //                Rigid_Move_Amount_2D(&body1->position, -move_amount.x, -move_amount.y);
-    //                Rigid_Move_Amount_2D(&body2->position, move_amount.x, move_amount.y);
-    //            }
-
-    //            collision_resolve(body1, body2, normal, depth);
-    //        }
-    //    }
-    //}
-
-    // SCREEN WRAPPING
-    for (size_t i = 0; i < NUM_OF_BODIES && world.bodies[i]; i++)
+    for (size_t i = 0; i < world.current_number_of_bodies; i++)
     {
-        Rigid *body = world.bodies[i];
+        Rigid *body1 = world.bodies[i];
 
-        if (body == NULL)
-            continue;
+        for (size_t j = i + 1; j < world.current_number_of_bodies; j++)
+        {
+            Rigid *body2 = world.bodies[j];
+
+            if (body1->is_static && body2->is_static)
+                continue;
+
+            vec2  normal = {0};
+            float depth  = 0.0f;
+
+            if (collision_test(*body1, *body2, &normal, &depth))
+            {
+                if (body1->is_static)
+                {
+                    const vec2 move_amount = vec2_mul_scal(normal, depth);
+                    Rigid_Move_Amount_2D(&body2->position, move_amount.x, move_amount.y);
+                }
+                else if (body2->is_static)
+                {
+                    const vec2 move_amount = vec2_mul_scal(normal, depth);
+                    Rigid_Move_Amount_2D(&body1->position, -move_amount.x, -move_amount.y);
+                }
+                else
+                {
+                    const vec2 move_amount = vec2_mul_scal(normal, depth / 2.0f);
+                    Rigid_Move_Amount_2D(&body1->position, -move_amount.x, -move_amount.y);
+                    Rigid_Move_Amount_2D(&body2->position, move_amount.x, move_amount.y);
+                }
+
+                collision_resolve(body1, body2, normal, depth);
+            }
+        }
+    }
+
+    for (size_t i = 0; i < world.current_number_of_bodies; i++)
+    {
+        Rigid *const body = world.bodies[i];
+
+        // check if body is bellow bottom of the screen
+        AABB_Rigid_Update(body);
+        const AABB aabb = body->aabb;
+        if (aabb.max.y > (float)Window_Height())
+        {
+            world.bodies[i] = world.bodies[world.current_number_of_bodies - 1];
+            world.current_number_of_bodies--;
+        }
+    }
+
+    for (size_t i = 0; i < world.current_number_of_bodies; i++)
+    {
+        Rigid *const body = world.bodies[i];
 
         if (body->type != SHAPE_BOX)
             continue;
@@ -191,13 +197,10 @@ void World_update(const double elapsed_time_ms)
 
 void World_on_render(void)
 {
-    for (size_t i = 0; i < NUM_OF_BODIES; i++)
+    for (size_t i = 0; i < world.current_number_of_bodies; i++)
     {
         const Rigid       *body   = world.bodies[i];
         const unsigned int colour = world.body_colour[i];
-
-        if (body == NULL)
-            continue;
 
         if (body->type == SHAPE_CIRCLE)
         {
@@ -223,7 +226,7 @@ void World_on_render(void)
 
 void World_on_exit(void)
 {
-    for (size_t i = 0; i < NUM_OF_BODIES; i++)
+    for (size_t i = 0; i < world.current_number_of_bodies; i++)
     {
         Rigid_Destroy(world.bodies[i]);
     }
