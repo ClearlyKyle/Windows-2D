@@ -169,7 +169,8 @@ void World_update(const double elapsed_time_ms)
         const AABB aabb = body->aabb;
         if (aabb.max.y > (float)Window_Height())
         {
-            world.bodies[i] = world.bodies[world.current_number_of_bodies - 1];
+            world.bodies[i]                                  = world.bodies[world.current_number_of_bodies - 1];
+            world.bodies[world.current_number_of_bodies - 1] = NULL;
             world.current_number_of_bodies--;
         }
     }
