@@ -25,7 +25,7 @@ const static unsigned int normal_colour    = COL_WHITE;
 const static unsigned int player_colour    = COL_BLUE;
 const static unsigned int collision_colour = COL_YELLOW;
 
-const static vec2 WORLD_GRAVITY = {0.0f, 9.8f};
+const static vec2 WORLD_GRAVITY = {0.0f, 9.81f};
 
 void World_init(void)
 {
@@ -87,6 +87,7 @@ static void add_body_to_world(unsigned int x, unsigned int y)
 void World_update(const double elapsed_time_ms)
 {
     const double elapsed_time_second = elapsed_time_ms / 1000.0;
+    // printf("elapsed_time_second : %f\n", elapsed_time_second);
 
     if (input_mouse_is_clicked(BUTTON_LEFT))
     {
@@ -98,101 +99,105 @@ void World_update(const double elapsed_time_ms)
         add_body_to_world(mouse_x, mouse_y);
     }
 
-    const float angle = 0.0f;
-    for (size_t i = 0; i < world.current_number_of_bodies; i++)
+    const double iteration_time = elapsed_time_second / (double)NUMBER_OF_ITERATIONS;
+    for (size_t iteration = 0; iteration < NUMBER_OF_ITERATIONS; iteration++)
     {
-        Rigid *body = world.bodies[i];
-
-        Rigid_step(body, (const float)elapsed_time_second * 10.0f, WORLD_GRAVITY);
-
-        if (body->type != SHAPE_BOX)
-            continue;
-
-        vec2 *verts = body->verticies;
-
-        verts[0] = vec2_transform(verts[0], angle);
-        verts[1] = vec2_transform(verts[1], angle);
-        verts[2] = vec2_transform(verts[2], angle);
-        verts[3] = vec2_transform(verts[3], angle);
-
-        body->transformed_verticies[0] = vec2_add(verts[0], body->position);
-        body->transformed_verticies[1] = vec2_add(verts[1], body->position);
-        body->transformed_verticies[2] = vec2_add(verts[2], body->position);
-        body->transformed_verticies[3] = vec2_add(verts[3], body->position);
-    }
-
-    // COLLISIONS
-    for (size_t i = 0; i < world.current_number_of_bodies; i++)
-    {
-        Rigid *body1 = world.bodies[i];
-
-        for (size_t j = i + 1; j < world.current_number_of_bodies; j++)
+        const float angle = 0.0f;
+        for (size_t i = 0; i < world.current_number_of_bodies; i++)
         {
-            Rigid *body2 = world.bodies[j];
+            Rigid *body = world.bodies[i];
 
-            if (body1->is_static && body2->is_static)
+            Rigid_step(body, (const float)iteration_time, WORLD_GRAVITY);
+
+            if (body->type != SHAPE_BOX)
                 continue;
 
-            vec2  normal = {0};
-            float depth  = 0.0f;
+            vec2 *verts = body->verticies;
 
-            if (collision_test(*body1, *body2, &normal, &depth))
+            verts[0] = vec2_transform(verts[0], angle);
+            verts[1] = vec2_transform(verts[1], angle);
+            verts[2] = vec2_transform(verts[2], angle);
+            verts[3] = vec2_transform(verts[3], angle);
+
+            body->transformed_verticies[0] = vec2_add(verts[0], body->position);
+            body->transformed_verticies[1] = vec2_add(verts[1], body->position);
+            body->transformed_verticies[2] = vec2_add(verts[2], body->position);
+            body->transformed_verticies[3] = vec2_add(verts[3], body->position);
+        }
+
+        // COLLISIONS
+        for (size_t i = 0; i < world.current_number_of_bodies; i++)
+        {
+            Rigid *body1 = world.bodies[i];
+
+            for (size_t j = i + 1; j < world.current_number_of_bodies; j++)
             {
-                if (body1->is_static)
-                {
-                    const vec2 move_amount = vec2_mul_scal(normal, depth);
-                    Rigid_Move_Amount_2D(&body2->position, move_amount.x, move_amount.y);
-                }
-                else if (body2->is_static)
-                {
-                    const vec2 move_amount = vec2_mul_scal(normal, depth);
-                    Rigid_Move_Amount_2D(&body1->position, -move_amount.x, -move_amount.y);
-                }
-                else
-                {
-                    const vec2 move_amount = vec2_mul_scal(normal, depth / 2.0f);
-                    Rigid_Move_Amount_2D(&body1->position, -move_amount.x, -move_amount.y);
-                    Rigid_Move_Amount_2D(&body2->position, move_amount.x, move_amount.y);
-                }
+                Rigid *body2 = world.bodies[j];
 
-                collision_resolve(body1, body2, normal, depth);
+                if (body1->is_static && body2->is_static)
+                    continue;
+
+                vec2  normal = {0};
+                float depth  = 0.0f;
+
+                if (collision_test(*body1, *body2, &normal, &depth))
+                {
+                    if (body1->is_static)
+                    {
+                        const vec2 move_amount = vec2_mul_scal(normal, depth);
+                        Rigid_Move_Amount_2D(&body2->position, move_amount.x, move_amount.y);
+                    }
+                    else if (body2->is_static)
+                    {
+                        const vec2 move_amount = vec2_mul_scal(normal, depth);
+                        Rigid_Move_Amount_2D(&body1->position, -move_amount.x, -move_amount.y);
+                    }
+                    else
+                    {
+                        const vec2 move_amount = vec2_mul_scal(normal, depth / 2.0f);
+                        Rigid_Move_Amount_2D(&body1->position, -move_amount.x, -move_amount.y);
+                        Rigid_Move_Amount_2D(&body2->position, move_amount.x, move_amount.y);
+                    }
+
+                    collision_resolve(body1, body2, normal, depth);
+                }
             }
         }
-    }
 
-    for (size_t i = 0; i < world.current_number_of_bodies; i++)
-    {
-        Rigid *const body = world.bodies[i];
-
-        // check if body is bellow bottom of the screen
-        AABB_Rigid_Update(body);
-        const AABB aabb = body->aabb;
-        if (aabb.max.y > (float)Window_Height())
+        for (size_t i = 0; i < world.current_number_of_bodies; i++)
         {
-            world.bodies[i]                                  = world.bodies[world.current_number_of_bodies - 1];
-            world.bodies[world.current_number_of_bodies - 1] = NULL;
-            world.current_number_of_bodies--;
+            Rigid *const body = world.bodies[i];
+
+            // check if body is bellow bottom of the screen
+            AABB_Rigid_Update(body);
+            const AABB aabb = body->aabb;
+            if (aabb.max.y > (float)Window_Height())
+            {
+                world.bodies[i]                                  = world.bodies[world.current_number_of_bodies - 1];
+                world.bodies[world.current_number_of_bodies - 1] = NULL;
+                world.current_number_of_bodies--;
+            }
         }
-    }
 
-    for (size_t i = 0; i < world.current_number_of_bodies; i++)
-    {
-        Rigid *const body = world.bodies[i];
+        for (size_t i = 0; i < world.current_number_of_bodies; i++)
+        {
+            Rigid *const body = world.bodies[i];
 
-        if (body->type != SHAPE_BOX)
-            continue;
+            if (body->type != SHAPE_BOX)
+                continue;
 
-        vec2 *verts = body->verticies;
+            vec2 *verts = body->verticies;
 
-        verts[0] = vec2_transform(verts[0], angle);
-        verts[1] = vec2_transform(verts[1], angle);
-        verts[2] = vec2_transform(verts[2], angle);
-        verts[3] = vec2_transform(verts[3], angle);
+            verts[0] = vec2_transform(verts[0], angle);
+            verts[1] = vec2_transform(verts[1], angle);
+            verts[2] = vec2_transform(verts[2], angle);
+            verts[3] = vec2_transform(verts[3], angle);
 
-        body->transformed_verticies[0] = vec2_add(verts[0], body->position);
-        body->transformed_verticies[1] = vec2_add(verts[1], body->position);
-        body->transformed_verticies[2] = vec2_add(verts[2], body->position);
-        body->transformed_verticies[3] = vec2_add(verts[3], body->position);
+            body->transformed_verticies[0] = vec2_add(verts[0], body->position);
+            body->transformed_verticies[1] = vec2_add(verts[1], body->position);
+            body->transformed_verticies[2] = vec2_add(verts[2], body->position);
+            body->transformed_verticies[3] = vec2_add(verts[3], body->position);
+        }
     }
 }
 
