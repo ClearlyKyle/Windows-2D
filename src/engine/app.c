@@ -245,14 +245,13 @@ void App_Startup(const int width, const int height, const char *title,
 
     bool Running = true;
 
-    size_t frame_counter          = 1;
-    size_t AVG_FPS_PER_X_FRAMES   = 500;
-    double frame_time_accumulator = 0.0;
+    size_t       frame_counter          = 1;
+    const size_t AVG_FPS_PER_X_FRAMES   = 500;
+    double       frame_time_accumulator = 0.0;
 
     Window_Clear_Screen(0xFF0000FF, &window_app.Bitmap);
     while (Running)
     {
-        Timer_Update(&Timer);
 
         MSG Message;
         while (PeekMessage(&Message, NULL, 0, 0, PM_REMOVE))
@@ -263,11 +262,11 @@ void App_Startup(const int width, const int height, const char *title,
             DispatchMessage(&Message);
         }
 
+        Timer_Update(&Timer);
         window_app.Update(Timer.ElapsedMilliSeconds);
 
         Window_Clear_Screen(0xFF0000FF, &window_app.Bitmap);
         window_app.Render();
-        Timer_Start(&Timer);
 
         input_update(); // THIS NEEDS TO BE AT THE END
         Window_Blit(&window_app.Bitmap);
@@ -275,12 +274,13 @@ void App_Startup(const int width, const int height, const char *title,
         if ((frame_counter % AVG_FPS_PER_X_FRAMES) == 0)
         {
             const double avg_frame_time_ms = frame_time_accumulator / (double)AVG_FPS_PER_X_FRAMES;
-            const double avg_fps           = 1000.0 / avg_frame_time_ms;
+            const double avg_fps           = 1000.0 / avg_frame_time_ms; // converting from "ms" to "s" also
             fprintf(stderr, "Avg FPS : %f, %fms\n", avg_fps, avg_frame_time_ms);
 
             frame_counter          = 1;
             frame_time_accumulator = 0.0;
         }
+
         frame_counter++;
         frame_time_accumulator += Timer.ElapsedMilliSeconds;
     }
