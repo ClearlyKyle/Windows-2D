@@ -49,7 +49,7 @@ void World_init(void)
     world.current_number_of_bodies = 1;
 }
 
-static void add_body_to_world(unsigned int x, unsigned int y)
+static void add_body_to_world(unsigned int x, unsigned int y, enum Shape_Type type)
 {
     if (world.current_number_of_bodies == MAX_NUM_OF_BODIES)
         return;
@@ -58,11 +58,8 @@ static void add_body_to_world(unsigned int x, unsigned int y)
 
     if (*p == NULL)
     {
-        // const int shape_type = random_int(0, 1);
-        const int shape_type = 0;
-
         Rigid *body = malloc(sizeof(*body));
-        if (shape_type == SHAPE_CIRCLE)
+        if (type == SHAPE_CIRCLE)
         {
             *body = Rigid_Circle_Init((vec2){(float)x, (float)y},
                                       20.0f,
@@ -70,7 +67,7 @@ static void add_body_to_world(unsigned int x, unsigned int y)
                                       0.5f,
                                       false);
         }
-        else if (shape_type == SHAPE_BOX)
+        else if (type == SHAPE_BOX)
         {
             *body = Rigid_Box_Init((vec2){(float)x, (float)y},
                                    50.0f,
@@ -96,7 +93,16 @@ void World_update(const double elapsed_time_ms)
         input_mouse_position(&mouse_x, &mouse_y);
         printf("Mouse (%d, %d)\n", mouse_x, mouse_y);
 
-        add_body_to_world(mouse_x, mouse_y);
+        add_body_to_world(mouse_x, mouse_y, SHAPE_CIRCLE);
+    }
+    if (input_mouse_is_clicked(BUTTON_RIGHT))
+    {
+        unsigned int mouse_x;
+        unsigned int mouse_y;
+        input_mouse_position(&mouse_x, &mouse_y);
+        printf("Mouse (%d, %d)\n", mouse_x, mouse_y);
+
+        add_body_to_world(mouse_x, mouse_y, SHAPE_BOX);
     }
 
     const double iteration_time = elapsed_time_second / (double)NUMBER_OF_ITERATIONS;
