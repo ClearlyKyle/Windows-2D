@@ -2,6 +2,7 @@
 #define __VEC2_H__
 
 #include <math.h>
+#include <stdbool.h>
 
 typedef struct vec2
 {
@@ -9,12 +10,21 @@ typedef struct vec2
 } vec2;
 
 #define VEC2_INIT_ZERO \
-    (vec2) { 0.0f, 0.0f }
+    (vec2)             \
+    {                  \
+        0.0f, 0.0f     \
+    }
 #define VEC2_INIT_VALUE(VAL) \
-    (vec2) { (VAL), (VAL) }
+    (vec2)                   \
+    {                        \
+        (VAL), (VAL)         \
+    }
 
 #define VEC2_NEGATIVE(VEC) \
-    (vec2) { -(VEC).x, -(VEC).y }
+    (vec2)                 \
+    {                      \
+        -(VEC).x, -(VEC).y \
+    }
 
 inline void vec2_make_negative(vec2 *v)
 {
@@ -63,10 +73,15 @@ inline float vec2_dot(const vec2 v1, const vec2 v2)
     return v1.x * v2.x + v1.y * v2.y;
 }
 
-inline float vec2_length(const vec2 v1)
+inline float vec2_length_sq(const vec2 v1)
 {
     const vec2 tmp = vec2_mul(v1, v1);
-    return sqrtf(tmp.x + tmp.y);
+    return tmp.x + tmp.y;
+}
+
+inline float vec2_length(const vec2 v1)
+{
+    return sqrtf(vec2_length_sq(v1));
 }
 
 inline void vec2_normalise_r(vec2 *v1)
@@ -102,6 +117,11 @@ inline vec2 vec2_transform(const vec2 v, float angle)
     const float rot_y = v.x * s + v.y * c;
 
     return (vec2){rot_x, rot_y};
+}
+
+inline bool vec2_cmp(const vec2 v1, const vec2 v2)
+{
+    return (v1.x == v2.x) && (v1.y == v2.y);
 }
 
 #endif // __VEC2_H__
