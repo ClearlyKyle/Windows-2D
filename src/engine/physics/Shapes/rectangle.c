@@ -61,6 +61,7 @@ Rigid Rigid_Box_Init(vec2 position, float width, float height, float density, fl
         .is_static = is_static,
         .area      = area,
         .mass      = mass,
+        .inv_mass  = 1.0f / mass,
 
         .indicies              = indicies,
         .verticies             = _Box_Create_Verticies(width, height),

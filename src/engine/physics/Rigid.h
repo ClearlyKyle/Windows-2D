@@ -24,6 +24,7 @@ typedef struct Rigid
 
     float density;
     float mass;
+    float inv_mass;
     float restitution;
     float area;
 

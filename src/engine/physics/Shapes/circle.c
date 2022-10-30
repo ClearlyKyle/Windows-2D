@@ -32,6 +32,7 @@ Rigid Rigid_Circle_Init(vec2 position, float radius, float density, float restit
         .is_static = is_static,
         .area      = area,
         .mass      = mass,
+        .inv_mass  = 1.0f / mass,
 
         .verticies             = NULL,
         .indicies              = NULL,
