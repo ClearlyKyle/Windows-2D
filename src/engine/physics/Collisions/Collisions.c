@@ -59,8 +59,8 @@ static int _find_closest_point(const vec2 circle_center, const vec2 *verticies, 
 
 bool collision_circle_circle(const Rigid circle1, const Rigid circle2, vec2 *normal, float *depth)
 {
-    assert(circle1.type == SHAPE_CIRCLE && "Circle_intersection - circle1 is not a CIRCLE\n");
-    assert(circle2.type == SHAPE_CIRCLE && "Circle_intersection - circle2 is not a CIRCLE\n");
+    assert(circle1.type == SHAPE_CIRCLE && "collision_circle_circle - circle1 is not a CIRCLE\n");
+    assert(circle2.type == SHAPE_CIRCLE && "collision_circle_circle - circle2 is not a CIRCLE\n");
 
     const float distance        = vec2_distance(circle1.position, circle2.position);
     const float combined_radius = circle1.radius + circle2.radius;
@@ -78,8 +78,8 @@ bool collision_circle_circle(const Rigid circle1, const Rigid circle2, vec2 *nor
 
 bool collision_box_box(const Rigid box1, const Rigid box2, vec2 *normal, float *depth)
 {
-    assert(box1.type == SHAPE_BOX && "Box_intersection - box1 is not a BOX\n");
-    assert(box2.type == SHAPE_BOX && "Box_intersection - box2 is not a BOX\n");
+    assert(box1.type == SHAPE_BOX && "collision_box_box - box1 is not a BOX\n");
+    assert(box2.type == SHAPE_BOX && "collision_box_box - box2 is not a BOX\n");
 
     float min1, max1;
     float min2, max2;
@@ -153,8 +153,18 @@ bool collision_box_box(const Rigid box1, const Rigid box2, vec2 *normal, float *
 
 bool collision_box_circle(const Rigid box, const Rigid circle, vec2 *normal, float *depth)
 {
-    assert(box.type == SHAPE_BOX && "Box_Circle_collision - box is not a BOX\n");
-    assert(circle.type == SHAPE_CIRCLE && "Box_Circle_collision - circle is not a BOX\n");
+    assert(box.type == SHAPE_BOX && "collision_box_circle - box is not a BOX\n");
+    assert(circle.type == SHAPE_CIRCLE && "collision_box_circle - circle is not a BOX\n");
+
+    const bool res = collision_circle_box(circle, box, normal, depth);
+    vec2_make_negative(normal);
+    return res;
+}
+
+bool collision_circle_box(const Rigid circle, const Rigid box, vec2 *normal, float *depth)
+{
+    assert(circle.type == SHAPE_CIRCLE && "collision_circle_box - circle is not a BOX\n");
+    assert(box.type == SHAPE_BOX && "collision_circle_box - box is not a BOX\n");
 
     float min1, max1;
     float min2, max2;
@@ -228,6 +238,15 @@ bool collision_box_circle(const Rigid box, const Rigid circle, vec2 *normal, flo
     return true;
 }
 
+typedef bool (*collision_fptr)(const Rigid obj1, const Rigid obj2, vec2 *normal, float *depth);
+
+const static collision_fptr collision_test_functions[3][3] = {
+    [SHAPE_CIRCLE][SHAPE_CIRCLE] = collision_circle_circle,
+    [SHAPE_CIRCLE][SHAPE_BOX]    = collision_circle_box,
+    [SHAPE_BOX][SHAPE_CIRCLE]    = collision_box_circle,
+    [SHAPE_BOX][SHAPE_BOX]       = collision_box_box,
+};
+
 bool collision_test(const Rigid body1, const Rigid body2, vec2 *normal, float *depth)
 {
     const enum Shape_Type body1_type = body1.type;
@@ -236,33 +255,7 @@ bool collision_test(const Rigid body1, const Rigid body2, vec2 *normal, float *d
     *normal = (vec2){0.0f, 0.0f};
     *depth  = 0.0f;
 
-    if (body1_type == SHAPE_BOX)
-    {
-        if (body2_type == SHAPE_BOX)
-        {
-            return collision_box_box(body1, body2, normal, depth);
-        }
-        else if (body2_type == SHAPE_CIRCLE)
-        {
-            const bool res = collision_box_circle(body1, body2, normal, depth);
-            vec2_make_negative(normal);
-            return res;
-        }
-    }
-    if (body1_type == SHAPE_CIRCLE)
-    {
-        if (body2_type == SHAPE_BOX)
-        {
-            return collision_box_circle(body2, body1, normal, depth);
-        }
-        else if (body2_type == SHAPE_CIRCLE)
-        {
-            return collision_circle_circle(body1, body2, normal, depth);
-        }
-    }
-
-    fprintf(stderr, "No collision test for types : %d, %d\n", body1_type, body2_type);
-    return false;
+    return collision_test_functions[body1_type][body2_type](body1, body2, normal, depth);
 }
 
 void collision_resolve(Rigid *body1, Rigid *body2, const vec2 normal, const float depth)
