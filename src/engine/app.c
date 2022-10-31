@@ -233,27 +233,38 @@ void App_Startup(const int width, const int height, const char *title,
         return;
     }
 
-    timer      Timer        = {0};
-    const bool timer_status = Timer_Init(&Timer);
-    if (!timer_status)
-    {
-        fprintf(stderr, "Error Timer_Init\n");
-        return;
-    }
-
     window_app.Init();
+
+    const float   TARGET_FPS                 = 120.0f;
+    const int64_t TARGET_FRAME_MICRO_SECONDS = (const int64_t)((1.0f / TARGET_FPS) * 1000000.0f);
+    double        accumulator                = 0.0;
+    double        t                          = 0.0;
+
+    printf("Target : %lluus, %llums, %ffps\n", TARGET_FRAME_MICRO_SECONDS, TARGET_FRAME_MICRO_SECONDS / 1000, TARGET_FPS);
+
+    // Timer things...
+    int64_t FrameStart          = 0;
+    int64_t FrameEnd            = 0;
+    int64_t ElapsedMicroseconds = 0;
+    int64_t PerfFrequency       = 0;
+    QueryPerformanceFrequency((LARGE_INTEGER *)&PerfFrequency);
+
+    size_t       frame_counter        = 1;
+    const size_t AVG_FPS_PER_X_FRAMES = 240;
+
+    int64_t ElapsedMicrosecondsAccumulatorRaw    = 0; // amount of time taken to render a "raw" frame
+    int64_t ElapsedMicrosecondsAccumulatorCooked = 0; // after locking the frames, should be averaged to 60fps lets say
+
+    MSG Message;
+    Window_Clear_Screen(0xFF0000FF, &window_app.Bitmap);
 
     bool Running = true;
 
-    size_t       frame_counter          = 1;
-    const size_t AVG_FPS_PER_X_FRAMES   = 500;
-    double       frame_time_accumulator = 0.0;
-
-    Window_Clear_Screen(0xFF0000FF, &window_app.Bitmap);
     while (Running)
     {
+        QueryPerformanceCounter((LARGE_INTEGER *)&FrameStart);
+        Window_Clear_Screen(0xFF0000FF, &window_app.Bitmap);
 
-        MSG Message;
         while (PeekMessage(&Message, NULL, 0, 0, PM_REMOVE))
         {
             if (Message.message == WM_QUIT)
@@ -262,27 +273,53 @@ void App_Startup(const int width, const int height, const char *title,
             DispatchMessage(&Message);
         }
 
-        Timer_Update(&Timer);
-        window_app.Update(Timer.ElapsedMilliSeconds);
+        // while (accumulator >= TARGET_FRAME_MS)
+        //{
+        //    accumulator -= Timer.ElapsedMilliSeconds;
+        //    t += Timer.ElapsedMilliSeconds;
+        //}
 
-        Window_Clear_Screen(0xFF0000FF, &window_app.Bitmap);
+        window_app.Update((const double)(ElapsedMicroseconds / 1000));
         window_app.Render();
 
         input_update(); // THIS NEEDS TO BE AT THE END
+
         Window_Blit(&window_app.Bitmap);
+
+        QueryPerformanceCounter((LARGE_INTEGER *)&FrameEnd);
+        ElapsedMicroseconds = FrameEnd - FrameStart;
+        ElapsedMicroseconds *= 1000000;
+        ElapsedMicroseconds /= PerfFrequency;
+
+        frame_counter++;
+        ElapsedMicrosecondsAccumulatorRaw += ElapsedMicroseconds;
+
+        // Lock the frame r
+        while (ElapsedMicroseconds < TARGET_FRAME_MICRO_SECONDS)
+        {
+            ElapsedMicroseconds = FrameEnd - FrameStart;
+            ElapsedMicroseconds *= 1000000;
+            ElapsedMicroseconds /= PerfFrequency;
+
+            QueryPerformanceCounter((LARGE_INTEGER *)&FrameEnd);
+        }
+
+        ElapsedMicrosecondsAccumulatorCooked += ElapsedMicroseconds;
+        // accumulator += ElapsedMicroseconds;
 
         if ((frame_counter % AVG_FPS_PER_X_FRAMES) == 0)
         {
-            const double avg_frame_time_ms = frame_time_accumulator / (double)AVG_FPS_PER_X_FRAMES;
-            const double avg_fps           = 1000.0 / avg_frame_time_ms; // converting from "ms" to "s" also
-            fprintf(stderr, "Avg FPS : %f, %fms\n", avg_fps, avg_frame_time_ms);
+            const float AverageRawMS             = ((float)ElapsedMicrosecondsAccumulatorRaw / (float)frame_counter) * 0.001f;
+            const float AverageCookedMS          = ((float)ElapsedMicrosecondsAccumulatorCooked / (float)frame_counter) * 0.001f;
+            const float AverageFPS               = 1.0f / (AverageCookedMS * 0.001f); // converting from ms to s
+            ElapsedMicrosecondsAccumulatorRaw    = 0;
+            ElapsedMicrosecondsAccumulatorCooked = 0;
 
-            frame_counter          = 1;
-            frame_time_accumulator = 0.0;
+            fprintf(stderr, "%ffps, %fms(cooked), %fms(raw)\n", AverageFPS, AverageCookedMS, AverageRawMS);
+
+            frame_counter                     = 1;
+            ElapsedMicrosecondsAccumulatorRaw = 0;
         }
-
-        frame_counter++;
-        frame_time_accumulator += Timer.ElapsedMilliSeconds;
     }
 }
 
