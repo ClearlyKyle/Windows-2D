@@ -13,11 +13,6 @@
 #define SNAKE_SQAURE_SIZE 20
 #define NUMBER_OF_SQAURES (400 / SNAKE_SQAURE_SIZE) - 1
 
-// typedef struct vec2
-//{
-//     int x, y;
-// } vec2;
-
 typedef struct Snake
 {
     vec2         tail[MAX_SNAKE_SIZE];
@@ -45,40 +40,8 @@ static bool snake_self_collision(void)
     return false;
 }
 
-static void snake_move(void)
+static void snake_draw(void)
 {
-    for (unsigned int i = snake.size - 1; i > 0; i--)
-    {
-        snake.tail[i] = snake.tail[i - 1];
-    }
-
-    const unsigned int width  = Window_Width();
-    const unsigned int height = Window_Height();
-
-    switch (snake.direction)
-    {
-    case 'w':
-        snake.tail[0].y -= SNAKE_SQAURE_SIZE;
-        if (snake.tail[0].y < 0)
-            snake.tail[0].y = (float)(height - SNAKE_SQAURE_SIZE);
-        break;
-    case 's':
-        snake.tail[0].y += SNAKE_SQAURE_SIZE;
-        if (snake.tail[0].y >= (int)height)
-            snake.tail[0].y = 0;
-        break;
-    case 'a':
-        snake.tail[0].x -= SNAKE_SQAURE_SIZE;
-        if (snake.tail[0].x < 0)
-            snake.tail[0].x = (float)(width - SNAKE_SQAURE_SIZE);
-        break;
-    case 'd':
-        snake.tail[0].x += SNAKE_SQAURE_SIZE;
-        if (snake.tail[0].x >= (int)width)
-            snake.tail[0].x = 0;
-        break;
-    }
-
     // drawing snake
     for (unsigned int i = 0; i < snake.size; i++)
     {
@@ -89,11 +52,6 @@ static void snake_move(void)
 
     // draw fruit
     Window_Draw_Rectangle((int)snake.fruit.x, (int)snake.fruit.y, SNAKE_SQAURE_SIZE, SNAKE_SQAURE_SIZE, 0xE4D400);
-
-    if (snake_self_collision())
-    {
-        snake.state = 0; // Restart the game
-    }
 }
 
 static void snake_update_score(void)
@@ -125,8 +83,12 @@ void Game_init(void)
     snake_update_score();
 }
 
+static size_t tick = 0;
+
 void Game_update(const double elapsed_time)
 {
+    tick++;
+
     if (input_key_is_down(KEY_W))
         snake.direction = (snake.direction != 's') ? 'w' : 's'; // UP
 
@@ -149,6 +111,49 @@ void Game_update(const double elapsed_time)
         const float fruit_y = (float)random_int(0, NUMBER_OF_SQAURES) * SNAKE_SQAURE_SIZE;
         snake.fruit         = (vec2){fruit_x, fruit_y};
     }
+
+    // MOVE SNAKE
+    const unsigned int width  = Window_Width();
+    const unsigned int height = Window_Height();
+
+    // move head
+    if (tick % 16 == 0)
+    {
+        // update tail
+        for (unsigned int i = snake.size - 1; i > 0; i--)
+        {
+            snake.tail[i] = snake.tail[i - 1];
+        }
+
+        switch (snake.direction)
+        {
+        case 'w':
+            snake.tail[0].y -= SNAKE_SQAURE_SIZE;
+            if (snake.tail[0].y < 0)
+                snake.tail[0].y = (float)(height - SNAKE_SQAURE_SIZE);
+            break;
+        case 's':
+            snake.tail[0].y += SNAKE_SQAURE_SIZE;
+            if (snake.tail[0].y >= (int)height)
+                snake.tail[0].y = 0;
+            break;
+        case 'a':
+            snake.tail[0].x -= SNAKE_SQAURE_SIZE;
+            if (snake.tail[0].x < 0)
+                snake.tail[0].x = (float)(width - SNAKE_SQAURE_SIZE);
+            break;
+        case 'd':
+            snake.tail[0].x += SNAKE_SQAURE_SIZE;
+            if (snake.tail[0].x >= (int)width)
+                snake.tail[0].x = 0;
+            break;
+        }
+
+        if (snake_self_collision())
+        {
+            snake.state = 0; // Restart the game
+        }
+    }
 }
 
 void Game_on_render(void)
@@ -159,7 +164,7 @@ void Game_on_render(void)
     }
     else // Move the snake along
     {
-        snake_move();
+        snake_draw();
     }
 }
 
