@@ -42,12 +42,15 @@ static bool snake_self_collision(void)
 
 static void snake_draw(void)
 {
-    // drawing snake
-    for (unsigned int i = 0; i < snake.size; i++)
-    {
-        vec2 position = snake.tail[i];
+    // draw head
+    Window_Draw_Rectangle((int)snake.tail[0].x, (int)snake.tail[0].y, SNAKE_SQAURE_SIZE, SNAKE_SQAURE_SIZE, 0xFF0000);
 
-        Window_Draw_Rectangle((int)position.x, (int)position.y, SNAKE_SQAURE_SIZE, SNAKE_SQAURE_SIZE, 0xFF0000);
+    // drawing tail
+    for (unsigned int i = 1; i < snake.size; i++)
+    {
+        const vec2 position = snake.tail[i];
+
+        Window_Draw_Rectangle((int)position.x, (int)position.y, SNAKE_SQAURE_SIZE, SNAKE_SQAURE_SIZE, 0xFF5050);
     }
 
     // draw fruit
