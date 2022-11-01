@@ -237,8 +237,8 @@ void App_Startup(const int width, const int height, const char *title,
 
     const float   TARGET_FPS                 = 120.0f;
     const int64_t TARGET_FRAME_MICRO_SECONDS = (const int64_t)((1.0f / TARGET_FPS) * 1000000.0f);
-    double        accumulator                = 0.0;
-    double        t                          = 0.0;
+    int64_t       accumulator                = 0;
+    const int64_t fixed_dt_us                = 10000; // fixed delta time in microseconds
 
     printf("Target : %lluus, %llums, %ffps\n", TARGET_FRAME_MICRO_SECONDS, TARGET_FRAME_MICRO_SECONDS / 1000, TARGET_FPS);
 
@@ -273,13 +273,14 @@ void App_Startup(const int width, const int height, const char *title,
             DispatchMessage(&Message);
         }
 
-        // while (accumulator >= TARGET_FRAME_MS)
-        //{
-        //    accumulator -= Timer.ElapsedMilliSeconds;
-        //    t += Timer.ElapsedMilliSeconds;
-        //}
+        // Fixed step update
+        accumulator += ElapsedMicroseconds;
+        while (accumulator >= fixed_dt_us)
+        {
+            window_app.Update((const double)(fixed_dt_us / 1000));
+            accumulator -= fixed_dt_us;
+        }
 
-        window_app.Update((const double)(ElapsedMicroseconds / 1000));
         window_app.Render();
 
         input_update(); // THIS NEEDS TO BE AT THE END
