@@ -7,4 +7,6 @@
 #define MIN_DENSITY 0.5f // g/cm^3
 #define MAX_DENSITY 21.4f
 
+#define NUMBER_OF_ITERATIONS 8
+
 #endif // __SETTINGS_H__
