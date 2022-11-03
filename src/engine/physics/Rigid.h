@@ -1,11 +1,12 @@
 #ifndef __RIGID_H__
 #define __RIGID_H__
 
-#include <stdio.h>
-#include <stdbool.h>
-
 #include "Settings.h"
 #include "maths/maths.h"
+
+#include <stdbool.h>
+#include <stdio.h>
+
 
 enum Shape_Type
 {
@@ -21,6 +22,8 @@ typedef struct Rigid
     vec2  linear_velocity;
     float rotation;
     float rotational_velocity;
+
+    AABB aabb;
 
     float density;
     float mass;
@@ -94,18 +97,18 @@ inline void Rigid_step(Rigid *body, const float time, const vec2 gravity)
     body->force.y = 0.0f;
 }
 
-inline AABB AABB_Get(const Rigid body)
+inline void AABB_Rigid_Update(Rigid *const body)
 {
     float minX = FLT_MAX;
     float minY = FLT_MAX;
     float maxX = FLT_MIN;
     float maxY = FLT_MIN;
 
-    if (body.type == SHAPE_BOX)
+    if (body->type == SHAPE_BOX)
     {
-        vec2 *vertices = body.transformed_verticies;
+        vec2 *vertices = body->transformed_verticies;
 
-        for (int i = 0; i < body.vert_count; i++)
+        for (int i = 0; i < body->vert_count; i++)
         {
             vec2 v = vertices[i];
 
@@ -127,15 +130,15 @@ inline AABB AABB_Get(const Rigid body)
             }
         }
     }
-    else if (body.type == SHAPE_CIRCLE)
+    else if (body->type == SHAPE_CIRCLE)
     {
-        minX = body.position.x - body.radius;
-        minY = body.position.y - body.radius;
-        maxX = body.position.x + body.radius;
-        maxY = body.position.y + body.radius;
+        minX = body->position.x - body->radius;
+        minY = body->position.y - body->radius;
+        maxX = body->position.x + body->radius;
+        maxY = body->position.y + body->radius;
     }
 
-    return AABB_Create(minX, minY, maxX, maxY);
+    body->aabb = AABB_Create(minX, minY, maxX, maxY);
 }
 
 #endif // __RIGID_H__
