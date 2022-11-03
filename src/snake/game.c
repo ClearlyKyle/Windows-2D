@@ -1,15 +1,15 @@
 #include "game.h"
 
+#include "../engine/input.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
-#include "../engine/input.h"
-
 /* Snake size will be a 5x5px rectangle */
 
-#define MAX_SNAKE_SIZE 100
+#define MAX_SNAKE_SIZE    100
 #define SNAKE_SQAURE_SIZE 20
 #define NUMBER_OF_SQAURES (400 / SNAKE_SQAURE_SIZE) - 1
 
@@ -130,26 +130,26 @@ void Game_update(const double elapsed_time)
 
         switch (snake.direction)
         {
-        case 'w':
-            snake.tail[0].y -= SNAKE_SQAURE_SIZE;
-            if (snake.tail[0].y < 0)
-                snake.tail[0].y = (float)(height - SNAKE_SQAURE_SIZE);
-            break;
-        case 's':
-            snake.tail[0].y += SNAKE_SQAURE_SIZE;
-            if (snake.tail[0].y >= (int)height)
-                snake.tail[0].y = 0;
-            break;
-        case 'a':
-            snake.tail[0].x -= SNAKE_SQAURE_SIZE;
-            if (snake.tail[0].x < 0)
-                snake.tail[0].x = (float)(width - SNAKE_SQAURE_SIZE);
-            break;
-        case 'd':
-            snake.tail[0].x += SNAKE_SQAURE_SIZE;
-            if (snake.tail[0].x >= (int)width)
-                snake.tail[0].x = 0;
-            break;
+            case 'w':
+                snake.tail[0].y -= SNAKE_SQAURE_SIZE;
+                if (snake.tail[0].y < 0)
+                    snake.tail[0].y = (float)(height - SNAKE_SQAURE_SIZE);
+                break;
+            case 's':
+                snake.tail[0].y += SNAKE_SQAURE_SIZE;
+                if (snake.tail[0].y >= (int)height)
+                    snake.tail[0].y = 0;
+                break;
+            case 'a':
+                snake.tail[0].x -= SNAKE_SQAURE_SIZE;
+                if (snake.tail[0].x < 0)
+                    snake.tail[0].x = (float)(width - SNAKE_SQAURE_SIZE);
+                break;
+            case 'd':
+                snake.tail[0].x += SNAKE_SQAURE_SIZE;
+                if (snake.tail[0].x >= (int)width)
+                    snake.tail[0].x = 0;
+                break;
         }
 
         if (snake_self_collision())
@@ -171,7 +171,4 @@ void Game_on_render(void)
     }
 }
 
-void Game_on_exit(void)
-{
-    return;
-}
+void Game_on_exit(void) { return; }
