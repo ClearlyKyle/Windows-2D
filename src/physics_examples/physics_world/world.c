@@ -1,6 +1,6 @@
 #include "World.h"
 
-#define MAX_NUM_OF_BODIES 10
+#define MAX_NUM_OF_BODIES 32
 
 typedef struct World
 {
@@ -135,12 +135,18 @@ void World_update(const double elapsed_time_ms)
         for (size_t i = 0; i < world.current_number_of_bodies; i++)
         {
             Rigid *body1 = world.bodies[i];
+            AABB_Rigid_Update(body1);
 
             for (size_t j = i + 1; j < world.current_number_of_bodies; j++)
             {
                 Rigid *body2 = world.bodies[j];
 
                 if (body1->is_static && body2->is_static)
+                    continue;
+
+                // TODO: Build list of overlapping AABB's here, then test for collision with this list
+                AABB_Rigid_Update(body2);
+                if (AABB_Test_Overlap(&body1->aabb, &body2->aabb) == false)
                     continue;
 
                 vec2  normal = {0};
@@ -183,11 +189,6 @@ void World_update(const double elapsed_time_ms)
                 world.bodies[world.current_number_of_bodies - 1] = NULL;
                 world.current_number_of_bodies--;
             }
-        }
-
-        for (size_t i = 0; i < world.current_number_of_bodies; i++)
-        {
-            Rigid *const body = world.bodies[i];
 
             if (body->type != SHAPE_BOX)
                 continue;
