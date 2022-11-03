@@ -1,6 +1,6 @@
-#include "snake/game.h"
 #include "physics_examples/collision_testing/collision_testing.h"
 #include "physics_examples/physics_world/world.h"
+#include "snake/game.h"
 
 int main(void)
 {
