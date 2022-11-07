@@ -21,7 +21,7 @@ ArrayList *array_list_create(size_t item_size, size_t initial_capacity)
 
     if (!list->items)
     {
-        fprintf(stderr, "Could not allocate memory for list->items : %d bytes\n", item_size * initial_capacity);
+        fprintf(stderr, "Could not allocate memory for list->items : %zd bytes\n", item_size * initial_capacity);
         list->items = NULL;
         return NULL;
     }
@@ -39,7 +39,7 @@ size_t array_list_append(ArrayList *list, void *item)
         if (!items)
         {
             fprintf(stderr, "Could not allocate memory for expanding capacity\n");
-            fprintf(stderr, "list.len : %d\nlist.capacity : %d\n", list->len, list->capacity);
+            fprintf(stderr, "list.len : %zd\nlist.capacity : %zd\n", list->len, list->capacity);
             return -1;
         }
         list->items = items;
