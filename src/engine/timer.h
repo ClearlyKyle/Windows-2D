@@ -1,21 +1,22 @@
 #ifndef __TIMER_H__
 #define __TIMER_H__
 
-#include <windows.h>
 #include <stdbool.h>
+#include <windows.h>
+
 
 typedef struct
 {
-    LARGE_INTEGER StartingCount;
-    LARGE_INTEGER EndingCount;
-    LARGE_INTEGER TotalCount;
+    LARGE_INTEGER Start;
+    LARGE_INTEGER Ending;
+    LARGE_INTEGER Total;
     LARGE_INTEGER Frequency;
     double        ElapsedMilliSeconds;
 } timer;
 
 inline void Timer_Start(timer *Timer)
 {
-    QueryPerformanceCounter(&Timer->StartingCount);
+    QueryPerformanceCounter(&Timer->Start);
 }
 
 inline bool Timer_Init(timer *Timer)
@@ -35,19 +36,16 @@ inline bool Timer_Init(timer *Timer)
 inline void Timer_Update(timer *Timer)
 {
     // get current tick
-    QueryPerformanceCounter(&Timer->EndingCount);
+    QueryPerformanceCounter(&Timer->Ending);
 
     // get tick count
-    Timer->TotalCount.QuadPart = Timer->EndingCount.QuadPart - Timer->StartingCount.QuadPart;
+    Timer->Total.QuadPart = Timer->Ending.QuadPart - Timer->Start.QuadPart;
 
     // for precision
-    Timer->TotalCount.QuadPart *= 1000000;
-    Timer->TotalCount.QuadPart /= Timer->Frequency.QuadPart;
+    Timer->Total.QuadPart *= 1000000;
 
     // calculate elapsed milliseconds
-    Timer->ElapsedMilliSeconds = (double)Timer->TotalCount.QuadPart / 1000.0;
-
-    QueryPerformanceCounter(&Timer->StartingCount);
+    Timer->ElapsedMilliSeconds = (double)(Timer->Total.QuadPart / Timer->Frequency.QuadPart) / 1000;
 }
 
 #endif // __TIMER_H__
